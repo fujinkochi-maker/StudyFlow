@@ -11,6 +11,13 @@ import 'package:study_flow/ui/components/animated_list_wrapper.dart';
 import 'package:study_flow/ui/components/student_id_card.dart';
 import 'package:study_flow/ui/components/task_card.dart';
 
+// Cute pastel colors matching the Study Flow mascot style
+const _kPastelPink = Color(0xFFFFB6C1);
+const _kPastelLavender = Color(0xFFE6E6FA);
+const _kPastelMint = Color(0xFFB5EAD7);
+const _kPastelPeach = Color(0xFFFFDAC1);
+const _kSoftCream = Color(0xFFFDF6F0);
+
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
@@ -21,20 +28,11 @@ class DashboardPage extends StatelessWidget {
       bottom: false,
       child: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: Colors.transparent,
-            title: Text('Dashboard', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
-            actions: [
-              IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.notifications_none_rounded, color: theme.colorScheme.onSurface),
-                tooltip: 'Reminders',
-              ),
-              const SizedBox(width: 8),
-            ],
+          // ── Cute Header with Study Flow Mascot ───────────────────────────
+          SliverToBoxAdapter(
+            child: _CuteHeader(),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
           // ── Student ID Card ──────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
@@ -42,30 +40,41 @@ class DashboardPage extends StatelessWidget {
               child: const StudentIdCard(),
             ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          // ── Cute Stats Row ───────────────────────────────────────────────
+          SliverToBoxAdapter(child: Padding(padding: AppSpacing.horizontalMd, child: _CuteStatsRow())),
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
-          SliverToBoxAdapter(child: Padding(padding: AppSpacing.horizontalMd, child: _StatsRow())),
-          const SliverToBoxAdapter(child: SizedBox(height: 14)),
-          SliverToBoxAdapter(child: Padding(padding: AppSpacing.horizontalMd, child: _ProgressAndStreak())),
-          const SliverToBoxAdapter(child: SizedBox(height: 14)),
-          SliverToBoxAdapter(child: Padding(padding: AppSpacing.horizontalMd, child: _PerformanceRow())),
-          const SliverToBoxAdapter(child: SizedBox(height: 18)),
+          // ── Progress & Streak Cards ───────────────────────────────────────
+          SliverToBoxAdapter(child: Padding(padding: AppSpacing.horizontalMd, child: _CuteProgressAndStreak())),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          // ── Performance Cards ───────────────────────────────────────────
+          SliverToBoxAdapter(child: Padding(padding: AppSpacing.horizontalMd, child: _CutePerformanceRow())),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          // ── Upcoming Tasks Header ────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
               padding: AppSpacing.horizontalMd,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Upcoming', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                  Row(
+                    children: [
+                      Icon(Icons.auto_awesome_rounded, color: _kPastelPink, size: 20),
+                      const SizedBox(width: 8),
+                      Text('Upcoming', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                    ],
+                  ),
                   TextButton.icon(
                     onPressed: () => context.go(AppRoutes.tasks),
-                    icon: Icon(Icons.arrow_forward_rounded, color: theme.colorScheme.primary),
-                    label: Text('View all', style: TextStyle(color: theme.colorScheme.primary)),
+                    icon: Icon(Icons.arrow_forward_rounded, color: _kPastelPink),
+                    label: Text('View all', style: TextStyle(color: _kPastelPink, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+          const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          // ── Task List ──────────────────────────────────────────────────────
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
             sliver: Consumer<TaskService>(
@@ -73,10 +82,9 @@ class DashboardPage extends StatelessWidget {
                 final upcoming = tasks.upcoming(limit: 6);
                 if (upcoming.isEmpty) {
                   return SliverToBoxAdapter(
-                    child: _EmptyState(
-                      title: 'All caught up',
-                      subtitle: 'Add a task to start building your streak.',
-                      icon: Icons.check_circle_rounded,
+                    child: _CuteEmptyState(
+                      title: 'All caught up!',
+                      subtitle: 'Add a task to start building your streak ✨',
                     ),
                   );
                 }
@@ -105,7 +113,24 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-class _StatsRow extends StatelessWidget {
+class _CuteHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: AppSpacing.horizontalMd,
+      child: Row(
+        children: [
+          Text('Study Flow', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+          const Spacer(),
+          Icon(Icons.notifications_none_rounded, color: theme.colorScheme.onSurface),
+        ],
+      ),
+    );
+  }
+}
+
+class _CuteStatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

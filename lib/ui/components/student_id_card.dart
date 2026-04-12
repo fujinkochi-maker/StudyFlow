@@ -52,7 +52,7 @@ class _StudentIdCardView extends StatelessWidget {
     final cardFg = (svc.bgMode == 'image' || bgLuminance < 0.4) ? Colors.white : Colors.black;
 
     return GestureDetector(
-      onTap: () => _openCustomize(context),
+      onLongPress: () => _openCustomize(context),
       child: Container(
         height: 188,
         decoration: BoxDecoration(
@@ -114,8 +114,6 @@ class _StudentIdCardView extends StatelessWidget {
                           // Title row
                           Row(
                             children: [
-                              Icon(Icons.auto_awesome_rounded, color: const Color(0xFFFFD54F), size: 16),
-                              const SizedBox(width: 6),
                               Text(
                                 'Student ID',
                                 style: TextStyle(
@@ -152,13 +150,6 @@ class _StudentIdCardView extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-
-              // Edit FAB
-              Positioned(
-                top: 10,
-                right: 10,
-                child: _EditButton(onTap: () => _openCustomize(context)),
               ),
             ],
           ),
@@ -312,28 +303,6 @@ class _DashPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DashPainter old) => old.color != color;
-}
-
-class _EditButton extends StatelessWidget {
-  const _EditButton({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 30,
-        height: 30,
-        decoration: BoxDecoration(
-          color: const Color(0xFF4CAF82),
-          borderRadius: BorderRadius.circular(99),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2))],
-        ),
-        child: const Icon(Icons.edit_rounded, color: Colors.white, size: 15),
-      ),
-    );
-  }
 }
 
 // ─── Customize Sheet ──────────────────────────────────────────────────────────

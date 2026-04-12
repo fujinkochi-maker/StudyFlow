@@ -120,7 +120,7 @@ class NotesService extends ChangeNotifier {
 
   // ── Notes ─────────────────────────────────────────────────────────────────
 
-  Future<Note> addNote({required String courseId, required String title, required String body}) async {
+  Future<Note> addNote({required String courseId, required String title, required String body, String? attachedFilePath}) async {
     final now = DateTime.now();
     final note = Note(
       id: 'n-${now.microsecondsSinceEpoch}',
@@ -129,6 +129,7 @@ class NotesService extends ChangeNotifier {
       body: body,
       createdAt: now,
       updatedAt: now,
+      attachedFilePath: attachedFilePath,
     );
     _notes.insert(0, note);
     notifyListeners();

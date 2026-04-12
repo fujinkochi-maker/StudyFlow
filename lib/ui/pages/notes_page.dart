@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
 import 'package:study_flow/features/notes/course.dart';
 import 'package:study_flow/features/notes/note.dart';
@@ -848,12 +849,14 @@ class _CourseFolderPageState extends State<CourseFolderPage> {
 
       String title = fileName;
       String body = '📎 Imported ${ext.toUpperCase()} file: $fileName';
+      final filePath = file.path;
 
       if (mounted) {
         await context.read<NotesService>().addNote(
           courseId: widget.course.id,
           title: title,
           body: body,
+          attachedFilePath: filePath,
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -942,7 +945,24 @@ class _NoteTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+              if (note.hasAttachedFile)
+                IconButton(
+                  icon: const Icon(Icons.open_in_new_rounded, size: 20),
+                  tooltip: 'Open file',
+                  onPressed: () async {
+                    final path = note.attachedFilePath;
+                    if (path != null) {
+                      final result = await OpenFile.open(path);
+                      if (result.type != ResultType.done && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not open file: ${result.message}')),
+                        );
+                      }
+                    }
+                  },
+                )
+              else
+                Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
             ],
           ),
         ),
