@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:study_flow/nav.dart';
-import 'package:study_flow/features/auth/auth_service.dart';
 import 'package:study_flow/features/notes/notes_service.dart';
 import 'package:study_flow/features/study/study_service.dart';
 import 'package:study_flow/features/tasks/task_service.dart';
@@ -27,23 +26,21 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppThemeController()..load()),
-        ChangeNotifierProvider(create: (_) => AuthService()..load()),
         ChangeNotifierProvider(create: (_) => TaskService()..load()),
         ChangeNotifierProvider(create: (_) => NotesService()..load()),
         ChangeNotifierProvider(create: (_) => StudyService()..load()),
         ChangeNotifierProvider(create: (_) => StudentIdService()..load()),
       ],
-      child: Consumer2<AppThemeController, AuthService>(
-        builder: (context, theme, auth, _) => _RouterHost(theme: theme, auth: auth),
+      child: Consumer<AppThemeController>(
+        builder: (context, theme, _) => _RouterHost(theme: theme),
       ),
     );
   }
 }
 
 class _RouterHost extends StatefulWidget {
-  const _RouterHost({required this.theme, required this.auth});
+  const _RouterHost({required this.theme});
   final AppThemeController theme;
-  final AuthService auth;
 
   @override
   State<_RouterHost> createState() => _RouterHostState();
@@ -55,7 +52,7 @@ class _RouterHostState extends State<_RouterHost> {
   @override
   void initState() {
     super.initState();
-    _router = AppRouter.create(widget.auth);
+    _router = AppRouter.create();
   }
 
   @override

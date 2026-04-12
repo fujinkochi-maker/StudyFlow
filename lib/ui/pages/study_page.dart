@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:study_flow/features/notes/course.dart';
 import 'package:study_flow/features/notes/notes_service.dart';
@@ -31,13 +32,13 @@ class _StudyPageState extends State<StudyPage> {
           final selected = _courseId == null ? null : notes.courseById(_courseId!);
 
           return DefaultTabController(
-            length: 4,
+            length: 2,
             child: CustomScrollView(
               slivers: [
                 SliverAppBar(
                   pinned: true,
                   backgroundColor: Colors.transparent,
-                  title: Text('Study', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                  title: const Text('Study'),
                   actions: selected != null
                       ? [
                           Padding(
@@ -68,11 +69,9 @@ class _StudyPageState extends State<StudyPage> {
                           labelColor: theme.colorScheme.primary,
                           unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
                           labelStyle: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w800),
-                          tabs: const [
-                            Tab(text: 'Quiz', icon: Icon(Icons.quiz_rounded)),
-                            Tab(text: 'Session', icon: Icon(Icons.timer_rounded)),
-                            Tab(text: 'Cards', icon: Icon(Icons.view_carousel_rounded)),
-                            Tab(text: 'Analytics', icon: Icon(Icons.show_chart_rounded)),
+                          tabs:  [
+                            Tab(text: 'Quiz', icon: Icon(PhosphorIcons.question())),
+                            Tab(text: 'Cards', icon: Icon(PhosphorIcons.cards())),
                           ],
                         ),
                       ),
@@ -83,9 +82,7 @@ class _StudyPageState extends State<StudyPage> {
                   child: TabBarView(
                     children: [
                       _QuizTab(course: selected),
-                      _PomodoroTab(course: selected),
                       _FlashcardsTab(course: selected),
-                      _AnalyticsTab(course: selected),
                     ],
                   ),
                 ),
@@ -161,7 +158,7 @@ class _QuizTab extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(color: scheme.primary.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(AppRadius.lg)),
-                      child: Icon(Icons.quiz_rounded, color: scheme.primary),
+                      child: Icon(PhosphorIcons.question(), color: scheme.primary),
                     ),
                     const SizedBox(width: 12),
                     Expanded(child: Text('Quiz Generator', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900))),
@@ -179,12 +176,12 @@ class _QuizTab extends StatelessWidget {
                   children: [
                     FilledButton.icon(
                       onPressed: c == null ? null : () => _startMcq(context, c.id),
-                      icon: const Icon(Icons.auto_awesome_rounded),
+                      icon:  Icon(PhosphorIcons.sparkle()),
                       label: const Text('Generate from flashcards'),
                     ),
                     OutlinedButton.icon(
                       onPressed: c == null ? null : () => _startFromNotes(context, c.id),
-                      icon: const Icon(Icons.notes_rounded),
+                      icon: Icon(PhosphorIcons.notebook()),
                       label: const Text('Generate from notes'),
                     ),
                   ],
@@ -243,148 +240,6 @@ class _QuizTab extends StatelessWidget {
   }
 }
 
-class _PomodoroTab extends StatefulWidget {
-  const _PomodoroTab({required this.course});
-  final Course? course;
-
-  @override
-  State<_PomodoroTab> createState() => _PomodoroTabState();
-}
-
-class _PomodoroTabState extends State<_PomodoroTab> {
-  static const _total = Duration(minutes: 25);
-  Timer? _timer;
-  Duration _remaining = _total;
-  bool _running = false;
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final progress = 1 - (_remaining.inSeconds / _total.inSeconds);
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              children: [
-                Text('Focus Session', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                const SizedBox(height: 18),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 160,
-                      height: 160,
-                      child: CircularProgressIndicator(
-                        value: progress.clamp(0, 1),
-                        strokeWidth: 10,
-                        backgroundColor: scheme.surfaceContainerHighest,
-                        valueColor: AlwaysStoppedAnimation(scheme.primary),
-                      ),
-                    ),
-                    Column(
-                      children: [
-                        Text(_format(_remaining), style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 6),
-                        Text('Pomodoro', style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _running ? _pause : _start,
-                        icon: Icon(_running ? Icons.pause_rounded : Icons.play_arrow_rounded),
-                        label: Text(_running ? 'Pause' : 'Start'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _reset,
-                        icon: const Icon(Icons.restart_alt_rounded),
-                        label: const Text('Reset'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Consumer<StudyService>(
-          builder: (context, study, _) {
-            final mins = (study.studySeconds / 60).round();
-            return Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Icon(Icons.insights_rounded, color: scheme.primary),
-                    const SizedBox(width: 12),
-                    Expanded(child: Text('Total focus time logged: $mins min', style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.35))),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  void _start() {
-    _timer?.cancel();
-    setState(() => _running = true);
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      if (_remaining <= const Duration(seconds: 1)) {
-        _timer?.cancel();
-        setState(() {
-          _remaining = Duration.zero;
-          _running = false;
-        });
-        context.read<StudyService>().addStudySeconds(_total.inSeconds);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Session complete! Logged 25 minutes.')));
-        return;
-      }
-      setState(() => _remaining -= const Duration(seconds: 1));
-    });
-  }
-
-  void _pause() {
-    _timer?.cancel();
-    setState(() => _running = false);
-  }
-
-  void _reset() {
-    _timer?.cancel();
-    setState(() {
-      _remaining = _total;
-      _running = false;
-    });
-  }
-
-  String _format(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-}
-
 class _FlashcardsTab extends StatelessWidget {
   const _FlashcardsTab({required this.course});
   final Course? course;
@@ -409,7 +264,7 @@ class _FlashcardsTab extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(color: scheme.primary.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(AppRadius.lg)),
-                      child: Icon(Icons.view_carousel_rounded, color: scheme.primary),
+                      child: Icon(PhosphorIcons.cards(), color: scheme.primary),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -424,7 +279,7 @@ class _FlashcardsTab extends StatelessWidget {
                     ),
                     FilledButton.icon(
                       onPressed: c == null ? null : () => _openCardEditor(context, courseId: c.id),
-                      icon: const Icon(Icons.add_rounded),
+                      icon:  Icon(PhosphorIcons.plus()),
                       label: const Text('Add'),
                     ),
                   ],
@@ -440,7 +295,7 @@ class _FlashcardsTab extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(Icons.add_card_rounded, color: scheme.onSurfaceVariant),
+                      Icon(PhosphorIcons.plus(), color: scheme.onSurfaceVariant),
                       const SizedBox(width: 12),
                       Expanded(child: Text('No flashcards yet. Tap Add to create your first one.', style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.35))),
                     ],
@@ -469,7 +324,7 @@ class _FlashcardsTab extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(Icons.swipe_rounded, color: scheme.primary),
+                      Icon(PhosphorIcons.handPointing(), color: scheme.primary),
                       const SizedBox(width: 12),
                       Expanded(child: Text('Swipe like a feed. Tap to flip. Long-press to edit.', style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant))),
                     ],
@@ -554,7 +409,7 @@ class _FlipCardState extends State<_FlipCard> with SingleTickerProviderStateMixi
                       children: [
                         Row(
                           children: [
-                            Icon(showingFront ? Icons.help_rounded : Icons.lightbulb_rounded, color: scheme.primary),
+                            Icon(showingFront ? PhosphorIcons.question() : PhosphorIcons.lightbulb(), color: scheme.primary),
                             const SizedBox(width: 10),
                             Expanded(child: Text(showingFront ? 'Question' : 'Answer', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, color: scheme.onSurface))),
                           ],
@@ -590,55 +445,6 @@ class _FlipCardState extends State<_FlipCard> with SingleTickerProviderStateMixi
     } else {
       _ctrl.forward(from: 0);
     }
-  }
-}
-
-class _AnalyticsTab extends StatelessWidget {
-  const _AnalyticsTab({required this.course});
-  final Course? course;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Consumer<StudyService>(
-      builder: (context, study, _) {
-        final courseId = course?.id;
-        final accuracy = study.overallAccuracy(courseId: courseId);
-        final accPct = (accuracy * 100).round();
-        final quizzes = study.quizzesTaken(courseId: courseId);
-        final mins = (study.studySeconds / 60).round();
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Performance Dashboard', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 8),
-                    Text(course == null ? 'Pick a course to see stats.' : 'Stats for ${course!.name} (and overall in your main dashboard).', style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.35)),
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        _MetricChip(icon: Icons.percent_rounded, label: 'Accuracy', value: '$accPct%'),
-                        _MetricChip(icon: Icons.quiz_rounded, label: 'Quizzes', value: '$quizzes'),
-                        _MetricChip(icon: Icons.timer_rounded, label: 'Focus time', value: '$mins min'),
-                        _MetricChip(icon: Icons.view_carousel_rounded, label: 'Cards', value: '${study.cards.length}'),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 }
 
@@ -719,7 +525,7 @@ class _FlashcardEditorSheetState extends State<_FlashcardEditorSheet> {
             Row(
               children: [
                 Expanded(child: Text(widget.existing == null ? 'New flashcard' : 'Edit flashcard', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900))),
-                IconButton(onPressed: () => context.pop(), icon: Icon(Icons.close_rounded, color: scheme.onSurface)),
+                IconButton(onPressed: () => context.pop(), icon: Icon(PhosphorIcons.x(), color: scheme.onSurface)),
               ],
             ),
             const SizedBox(height: 8),
@@ -732,13 +538,13 @@ class _FlashcardEditorSheetState extends State<_FlashcardEditorSheet> {
                 if (widget.existing != null)
                   OutlinedButton.icon(
                     onPressed: _saving ? null : _delete,
-                    icon: Icon(Icons.delete_outline_rounded, color: scheme.error),
+                    icon: Icon(PhosphorIcons.trash(), color: scheme.error),
                     label: Text('Delete', style: TextStyle(color: scheme.error)),
                   ),
                 const Spacer(),
                 FilledButton.icon(
                   onPressed: _saving ? null : _save,
-                  icon: _saving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save_rounded),
+                  icon: _saving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) :Icon(PhosphorIcons.floppyDisk()),
                   label: const Text('Save'),
                 ),
               ],
@@ -820,7 +626,7 @@ class _McqQuizSheetState extends State<_McqQuizSheet> {
             Row(
               children: [
                 Expanded(child: Text('Quiz • $progress', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900))),
-                IconButton(onPressed: () => context.pop(), icon: Icon(Icons.close_rounded, color: scheme.onSurface)),
+                IconButton(onPressed: () => context.pop(), icon: Icon(PhosphorIcons.x(), color: scheme.onSurface)),
               ],
             ),
             const SizedBox(height: 8),
@@ -847,7 +653,7 @@ class _McqQuizSheetState extends State<_McqQuizSheet> {
                         if (_picked == correctIndex) _correct++;
                       });
                     },
-                    icon: const Icon(Icons.check_rounded),
+                    icon:  Icon(PhosphorIcons.check()),
                     label: const Text('Check'),
                   ),
                 ),
@@ -870,7 +676,7 @@ class _McqQuizSheetState extends State<_McqQuizSheet> {
                               _done = false;
                             });
                           },
-                    icon: const Icon(Icons.arrow_forward_rounded),
+                    icon:  Icon(PhosphorIcons.arrowRight()),
                     label: Text(_index == widget.questions.length - 1 ? 'Finish' : 'Next'),
                   ),
                 ),
@@ -926,7 +732,7 @@ class _OptionTile extends StatelessWidget {
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(AppRadius.xl), border: Border.all(color: border)),
         child: Row(
           children: [
-            Icon(selected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded, size: 18, color: scheme.primary),
+            Icon(selected ? PhosphorIcons.radioButton() : PhosphorIcons.circle(), size: 18, color: scheme.primary),
             const SizedBox(width: 10),
             Expanded(child: Text(label, style: theme.textTheme.bodyMedium?.copyWith(color: fg, height: 1.25))),
           ],
@@ -983,7 +789,7 @@ class _IdQuizSheetState extends State<_IdQuizSheet> {
             Row(
               children: [
                 Expanded(child: Text('Quick ID • $progress', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900))),
-                IconButton(onPressed: () => context.pop(), icon: Icon(Icons.close_rounded, color: scheme.onSurface)),
+                IconButton(onPressed: () => context.pop(), icon: Icon(PhosphorIcons.x(), color: scheme.onSurface)),
               ],
             ),
             const SizedBox(height: 8),
@@ -1004,7 +810,7 @@ class _IdQuizSheetState extends State<_IdQuizSheet> {
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
-                      Icon(isCorrect ? Icons.check_circle_rounded : Icons.error_rounded, color: isCorrect ? Colors.green : scheme.error),
+                      Icon(isCorrect ? PhosphorIcons.checkCircle() : PhosphorIcons.warningCircle(), color: isCorrect ? Colors.green : scheme.error),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -1029,7 +835,7 @@ class _IdQuizSheetState extends State<_IdQuizSheet> {
                         if (isCorrect) _correct++;
                       });
                     },
-                    icon: const Icon(Icons.check_rounded),
+                    icon: Icon(PhosphorIcons.check()),
                     label: const Text('Check'),
                   ),
                 ),
@@ -1052,7 +858,7 @@ class _IdQuizSheetState extends State<_IdQuizSheet> {
                               _answer.clear();
                             });
                           },
-                    icon: const Icon(Icons.arrow_forward_rounded),
+                    icon: Icon(PhosphorIcons.arrowRight()),
                     label: Text(_index == widget.items.length - 1 ? 'Finish' : 'Next'),
                   ),
                 ),

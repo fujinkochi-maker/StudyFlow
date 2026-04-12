@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:study_flow/features/auth/auth_service.dart';
 import 'package:study_flow/features/notes/notes_service.dart';
 import 'package:study_flow/features/study/study_service.dart';
 import 'package:study_flow/features/tasks/task_service.dart';
@@ -41,13 +41,13 @@ class _AppShellState extends State<AppShell>
     super.dispose();
   }
 
-  static const _items = <_NavItem>[
-    _NavItem(label: 'Dashboard', icon: Icons.home_rounded, route: AppRoutes.dashboard),
-    _NavItem(label: 'Tasks',     icon: Icons.check_circle_rounded, route: AppRoutes.tasks),
-    _NavItem(label: 'Notes',     icon: Icons.edit_note_rounded, route: AppRoutes.notes),
-    _NavItem(label: 'Study',     icon: Icons.psychology_alt_rounded, route: AppRoutes.study),
-    _NavItem(label: 'Calendar',  icon: Icons.calendar_today_rounded, route: AppRoutes.calendar),
-    _NavItem(label: 'Profile',   icon: Icons.person_rounded, route: AppRoutes.profile),
+  static final _items = <_NavItem>[
+    _NavItem(label: 'Dashboard', icon: PhosphorIcons.house(), route: AppRoutes.dashboard),
+    _NavItem(label: 'Tasks',     icon: PhosphorIcons.checkCircle(), route: AppRoutes.tasks),
+    _NavItem(label: 'Notes',     icon: PhosphorIcons.notebook(), route: AppRoutes.notes),
+    _NavItem(label: 'Study',     icon: PhosphorIcons.brain(), route: AppRoutes.study),
+    _NavItem(label: 'Calendar',  icon: PhosphorIcons.calendarBlank(), route: AppRoutes.calendar),
+    _NavItem(label: 'Profile',   icon: PhosphorIcons.user(), route: AppRoutes.profile),
   ];
 
   @override
@@ -308,7 +308,7 @@ class _AnimatedPageState extends State<_AnimatedPage>
 // ─── Nav item model ───────────────────────────────────────────────────────────
 
 class _NavItem {
-  const _NavItem(
+  _NavItem(
       {required this.label, required this.icon, required this.route});
   final String label;
   final IconData icon;
@@ -324,12 +324,8 @@ class _AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final user = context.watch<AuthService>().currentUser;
     final themeMode = context.watch<AppThemeController>().themeMode;
     final isDark = themeMode == ThemeMode.dark;
-
-    final initial =
-        user?.displayName.split('').firstOrNull?.toUpperCase() ?? 'S';
 
     return Drawer(
       shape: const RoundedRectangleBorder(
@@ -342,9 +338,9 @@ class _AppDrawer extends StatelessWidget {
         children: [
           // ── Profile header ────────────────────────────────────────────
           _DrawerHeader(
-            initial: initial,
-            displayName: user?.displayName ?? 'Student',
-            email: user?.email ?? 'student@example.com',
+            initial: 'S',
+            displayName: 'Student',
+            email: 'Study Flow App',
           ),
 
           // ── Quick stats bar ───────────────────────────────────────────
@@ -373,17 +369,17 @@ class _AppDrawer extends StatelessWidget {
                     color: theme.colorScheme.outlineVariant),
                 _SectionLabel('More'),
                 _DrawerNavTile(
-                  item: const _NavItem(
+                  item: _NavItem(
                       label: 'Help & support',
-                      icon: Icons.help_outline_rounded,
+                      icon: PhosphorIcons.question(),
                       route: ''),
                   isSelected: false,
                   onTap: () => Navigator.of(context).pop(),
                 ),
                 _DrawerNavTile(
-                  item: const _NavItem(
+                  item: _NavItem(
                       label: 'About',
-                      icon: Icons.info_outline_rounded,
+                      icon: PhosphorIcons.info(),
                       route: ''),
                   isSelected: false,
                   onTap: () => Navigator.of(context).pop(),
@@ -399,10 +395,6 @@ class _AppDrawer extends StatelessWidget {
               final newMode =
                   isDark ? ThemeMode.light : ThemeMode.dark;
               context.read<AppThemeController>().setThemeMode(newMode);
-            },
-            onSignOut: () {
-              Navigator.of(context).pop();
-              context.read<AuthService>().logout();
             },
           ),
         ],
@@ -426,6 +418,7 @@ class _DrawerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Container(
       width: double.infinity,
       color: theme.colorScheme.primary,
@@ -483,8 +476,6 @@ class _StreakBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthService>().currentUser;
-    final streakDays = user?.streakDays ?? 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -504,7 +495,7 @@ class _StreakBadge extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            '$streakDays-day streak',
+            'Keep studying!',
             style: theme.textTheme.labelSmall?.copyWith(
               color: theme.colorScheme.onPrimary,
             ),
@@ -671,11 +662,9 @@ class _DrawerBottom extends StatelessWidget {
   const _DrawerBottom({
     required this.isDark,
     required this.onToggleTheme,
-    required this.onSignOut,
   });
   final bool isDark;
   final VoidCallback onToggleTheme;
-  final VoidCallback onSignOut;
 
   @override
   Widget build(BuildContext context) {
@@ -704,22 +693,6 @@ class _DrawerBottom extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Sign out
-          OutlinedButton.icon(
-            onPressed: onSignOut,
-            icon: const Icon(Icons.logout_rounded, size: 16),
-            label: const Text('Sign out'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              foregroundColor: theme.colorScheme.error,
-              side: BorderSide(
-                  color: theme.colorScheme.error.withValues(alpha: 0.4)),
-              textStyle: theme.textTheme.labelMedium,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
             ),
           ),
         ],

@@ -168,7 +168,12 @@ ThemeData buildAppTheme({required Brightness brightness, required Color seedColo
       foregroundColor: tuned.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: _buildTextTheme(brightness).titleLarge,
+      titleTextStyle: GoogleFonts.crimsonText(
+        fontSize: FontSizes.titleLarge,
+        fontWeight: FontWeight.w600,
+        fontStyle: FontStyle.italic,
+        color: tuned.onSurface,
+      ),
     ),
     cardTheme: CardThemeData(
       elevation: 0,
@@ -202,73 +207,82 @@ ThemeData buildAppTheme({required Brightness brightness, required Color seedColo
   );
 }
 
-/// Build text theme using Inter font family
+/// Build text theme using Montserrat for headers and Roboto Mono for body
 TextTheme _buildTextTheme(Brightness brightness) {
+  // Headers use Montserrat (clean, geometric, modern)
+  final headerStyle = GoogleFonts.montserrat;
+  // Body text uses Roboto Mono (monospace, readable)
+  final bodyStyle = GoogleFonts.robotoMono;
+
   return TextTheme(
-    displayLarge: GoogleFonts.inter(
+    // Display & Headlines - Montserrat
+    displayLarge: headerStyle(
       fontSize: FontSizes.displayLarge,
-      fontWeight: FontWeight.w400,
+      fontWeight: FontWeight.w700,
       letterSpacing: -0.25,
     ),
-    displayMedium: GoogleFonts.inter(
+    displayMedium: headerStyle(
       fontSize: FontSizes.displayMedium,
-      fontWeight: FontWeight.w400,
+      fontWeight: FontWeight.w700,
     ),
-    displaySmall: GoogleFonts.inter(
+    displaySmall: headerStyle(
       fontSize: FontSizes.displaySmall,
-      fontWeight: FontWeight.w400,
-    ),
-    headlineLarge: GoogleFonts.inter(
-      fontSize: FontSizes.headlineLarge,
       fontWeight: FontWeight.w600,
+    ),
+    headlineLarge: headerStyle(
+      fontSize: FontSizes.headlineLarge,
+      fontWeight: FontWeight.w700,
       letterSpacing: -0.5,
     ),
-    headlineMedium: GoogleFonts.inter(
+    headlineMedium: headerStyle(
       fontSize: FontSizes.headlineMedium,
       fontWeight: FontWeight.w600,
     ),
-    headlineSmall: GoogleFonts.inter(
+    headlineSmall: headerStyle(
       fontSize: FontSizes.headlineSmall,
       fontWeight: FontWeight.w600,
     ),
-    titleLarge: GoogleFonts.inter(
+    // Titles - Montserrat
+    titleLarge: headerStyle(
       fontSize: FontSizes.titleLarge,
+      fontWeight: FontWeight.w700,
+    ),
+    titleMedium: headerStyle(
+      fontSize: FontSizes.titleMedium,
       fontWeight: FontWeight.w600,
     ),
-    titleMedium: GoogleFonts.inter(
-      fontSize: FontSizes.titleMedium,
-      fontWeight: FontWeight.w500,
-    ),
-    titleSmall: GoogleFonts.inter(
+    titleSmall: headerStyle(
       fontSize: FontSizes.titleSmall,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
     ),
-    labelLarge: GoogleFonts.inter(
+    // Labels - Montserrat
+    labelLarge: headerStyle(
       fontSize: FontSizes.labelLarge,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
       letterSpacing: 0.1,
     ),
-    labelMedium: GoogleFonts.inter(
+    labelMedium: headerStyle(
       fontSize: FontSizes.labelMedium,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
       letterSpacing: 0.5,
     ),
-    labelSmall: GoogleFonts.inter(
+    labelSmall: headerStyle(
       fontSize: FontSizes.labelSmall,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w600,
       letterSpacing: 0.5,
     ),
-    bodyLarge: GoogleFonts.inter(
+    // Body - Roboto Mono
+    bodyLarge: bodyStyle(
       fontSize: FontSizes.bodyLarge,
       fontWeight: FontWeight.w400,
       letterSpacing: 0.15,
     ),
-    bodyMedium: GoogleFonts.inter(
+    bodyMedium: bodyStyle(
       fontSize: FontSizes.bodyMedium,
       fontWeight: FontWeight.w400,
       letterSpacing: 0.25,
     ),
-    bodySmall: GoogleFonts.inter(
+    bodySmall: bodyStyle(
       fontSize: FontSizes.bodySmall,
       fontWeight: FontWeight.w400,
       letterSpacing: 0.4,

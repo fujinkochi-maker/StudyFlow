@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:study_flow/features/auth/auth_service.dart';
 import 'package:study_flow/ui/app_shell.dart';
 import 'package:study_flow/ui/pages/calendar_page.dart';
 import 'package:study_flow/ui/pages/dashboard_page.dart';
-import 'package:study_flow/ui/pages/login_page.dart';
 import 'package:study_flow/ui/pages/notes_page.dart';
 import 'package:study_flow/ui/pages/profile_page.dart';
-import 'package:study_flow/ui/pages/sign_up_page.dart';
 import 'package:study_flow/ui/pages/study_page.dart';
 import 'package:study_flow/ui/pages/tasks_page.dart';
 
@@ -76,23 +73,10 @@ class ZoomFadePage<T> extends CustomTransitionPage<T> {
 ///
 /// [StatefulShellRoute.indexedStack] so each tab preserves its navigation state.
 class AppRouter {
-  static GoRouter create(AuthService auth) {
+  static GoRouter create() {
     return GoRouter(
       initialLocation: AppRoutes.dashboard,
-      refreshListenable: auth,
-      redirect: (context, state) {
-        final loggingIn = state.matchedLocation == AppRoutes.login || state.matchedLocation == AppRoutes.signUp;
-        if (!auth.loaded) return null;
-        if (!auth.isAuthed) {
-          return loggingIn ? null : AppRoutes.login;
-        }
-        if (loggingIn) return AppRoutes.dashboard;
-        return null;
-      },
       routes: [
-        GoRoute(path: AppRoutes.login, name: 'login', pageBuilder: (context, state) => ZoomFadePage(name: 'login', child: const LoginPage())),
-        GoRoute(path: AppRoutes.signUp, name: 'signUp', pageBuilder: (context, state) => ZoomFadePage(name: 'signUp', child: const SignUpPage())),
-
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) => AppShell(navigationShell: navigationShell),
         branches: [
@@ -174,8 +158,6 @@ class AppRouter {
 }
 
 class AppRoutes {
-  static const String login = '/login';
-  static const String signUp = '/sign-up';
   static const String dashboard = '/dashboard';
   static const String tasks = '/tasks';
   static const String notes = '/notes';

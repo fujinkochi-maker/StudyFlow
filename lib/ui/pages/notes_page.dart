@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:study_flow/features/notes/course.dart';
 import 'package:study_flow/features/notes/note.dart';
@@ -49,7 +50,7 @@ class _NotesPageState extends State<NotesPage> {
             // ── FAB ──────────────────────────────────────────────────────────
             floatingActionButton: FloatingActionButton(
               onPressed: () => _showAddCourseSheet(context),
-              child: const Icon(Icons.add_rounded),
+              child: Icon(PhosphorIcons.plus()),
             ),
             body: CustomScrollView(
               slivers: [
@@ -57,9 +58,7 @@ class _NotesPageState extends State<NotesPage> {
                 SliverAppBar(
                   pinned: true,
                   backgroundColor: Colors.transparent,
-                  title: Text('Notes',
-                      style: theme.textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.w900)),
+                  title: const Text('Notes'),
                 ),
 
                 // ── Search bar ───────────────────────────────────────────────
@@ -72,10 +71,10 @@ class _NotesPageState extends State<NotesPage> {
                       decoration: InputDecoration(
                         hintText: 'Find a course…',
                         prefixIcon:
-                            Icon(Icons.search_rounded, color: scheme.onSurfaceVariant),
+                            Icon(PhosphorIcons.magnifyingGlass(), color: scheme.onSurfaceVariant),
                         suffixIcon: _query.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear_rounded),
+                                icon:  Icon(PhosphorIcons.x()),
                                 onPressed: () {
                                   _searchCtrl.clear();
                                   setState(() => _query = '');
@@ -190,7 +189,7 @@ class _NotesPageState extends State<NotesPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+              Icon(PhosphorIcons.checkCircle(), color: Colors.white, size: 18),
               const SizedBox(width: 10),
               Text('"${course.name}" deleted'),
             ]),
@@ -262,16 +261,11 @@ class _FolderCard extends StatelessWidget {
               top: 0,
               left: 14,
               child: Container(
-                width: 48,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : Colors.black.withValues(alpha: 0.09),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(6),
-                    topRight: Radius.circular(6),
-                  ),
+                // Top folder icon
+                child: Icon(
+                  PhosphorIcons.folder(),
+                  size: 48,
+                  color: Colors.black.withValues(alpha: 0.15),
                 ),
               ),
             ),
@@ -350,7 +344,7 @@ class _FolderMenu extends StatelessWidget {
           color: scheme.surface.withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(99),
         ),
-        child: Icon(Icons.more_horiz_rounded, size: 16, color: scheme.onSurface),
+        child: Icon(PhosphorIcons.dotsThree(), size: 16, color: scheme.onSurface),
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
       onSelected: (v) {
@@ -361,7 +355,7 @@ class _FolderMenu extends StatelessWidget {
         PopupMenuItem(
           value: 'edit',
           child: Row(children: [
-            Icon(Icons.edit_rounded, size: 18, color: scheme.onSurface),
+            Icon(PhosphorIcons.pencilSimple(), size: 18, color: scheme.onSurface),
             const SizedBox(width: 10),
             const Text('Edit'),
           ]),
@@ -369,7 +363,7 @@ class _FolderMenu extends StatelessWidget {
         PopupMenuItem(
           value: 'delete',
           child: Row(children: [
-            Icon(Icons.delete_rounded, size: 18, color: scheme.error),
+            Icon(PhosphorIcons.trash(), size: 18, color: scheme.error),
             const SizedBox(width: 10),
             Text('Delete', style: TextStyle(color: scheme.error)),
           ]),
@@ -447,7 +441,7 @@ class _CourseEditorSheetState extends State<_CourseEditorSheet> {
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
-                icon: Icon(Icons.close_rounded, color: scheme.onSurface),
+                icon: Icon(PhosphorIcons.x(), color: scheme.onSurface),
               ),
             ]),
             const SizedBox(height: 16),
@@ -467,7 +461,7 @@ class _CourseEditorSheetState extends State<_CourseEditorSheet> {
 
             // Folder color picker
             Row(children: [
-              const Icon(Icons.folder_rounded, size: 18),
+              Icon(PhosphorIcons.folder(), size: 18),
               const SizedBox(width: 8),
               Text('Folder Color',
                   style: theme.textTheme.labelLarge
@@ -499,7 +493,7 @@ class _CourseEditorSheetState extends State<_CourseEditorSheet> {
                         ),
                       ),
                       child: isSelected
-                          ? Icon(Icons.check_rounded,
+                          ? Icon(PhosphorIcons.check(),
                               size: 14,
                               color: c == null ? scheme.onSurface : Colors.black87)
                           : null,
@@ -545,7 +539,7 @@ class _CourseEditorSheetState extends State<_CourseEditorSheet> {
     final svc = context.read<NotesService>();
     if (widget.existing == null) {
       await svc.addCourseAndReturn(
-          name: name, icon: Icons.folder_rounded, folderColor: _color);
+          name: name, icon: PhosphorIcons.folder(), folderColor: _color);
     } else {
       await svc.updateCourse(widget.existing!.copyWith(
         name: name,
@@ -640,7 +634,7 @@ class _EmptyFolders extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.folder_open_rounded,
+            Icon(PhosphorIcons.folderOpen(),
                 size: 72, color: theme.colorScheme.outlineVariant),
             const SizedBox(height: 16),
             Text('No folders yet',
@@ -654,7 +648,7 @@ class _EmptyFolders extends StatelessWidget {
             const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: onAdd,
-              icon: const Icon(Icons.add_rounded),
+              icon: Icon(PhosphorIcons.plus()),
               label: const Text('Create folder'),
             ),
           ],
@@ -702,13 +696,13 @@ class _CourseFolderPageState extends State<CourseFolderPage> {
             heroTag: 'import',
             onPressed: () => _importFile(context),
             tooltip: 'Import file',
-            child: const Icon(Icons.attach_file_rounded),
+            child: Icon(PhosphorIcons.paperclip()),
           ),
           const SizedBox(height: 10),
           FloatingActionButton.extended(
             heroTag: 'newNote',
             onPressed: () => _openEditor(context),
-            icon: const Icon(Icons.edit_note_rounded),
+            icon: Icon(PhosphorIcons.notePencil()),
             label: const Text('New Note'),
           ),
         ],
@@ -761,7 +755,7 @@ class _CourseFolderPageState extends State<CourseFolderPage> {
                   IconButton(
                     tooltip: 'New note',
                     onPressed: () => _openEditor(context),
-                    icon: Icon(Icons.add_rounded,
+                    icon: Icon(PhosphorIcons.plus(),
                         color: _contrastColor(folderColor)),
                   ),
                 ],
@@ -776,11 +770,11 @@ class _CourseFolderPageState extends State<CourseFolderPage> {
                     onChanged: (v) => setState(() => _query = v),
                     decoration: InputDecoration(
                       hintText: 'Search notes…',
-                      prefixIcon: Icon(Icons.search_rounded,
+                      prefixIcon: Icon(PhosphorIcons.magnifyingGlass(),
                           color: scheme.onSurfaceVariant),
                       suffixIcon: _query.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear_rounded),
+                              icon: Icon(PhosphorIcons.x()),
                               onPressed: () {
                                 _searchCtrl.clear();
                                 setState(() => _query = '');
@@ -861,7 +855,7 @@ class _CourseFolderPageState extends State<CourseFolderPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Row(children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+              Icon(PhosphorIcons.checkCircle(), color: Colors.white, size: 18),
               const SizedBox(width: 10),
               Flexible(child: Text('"$fileName" imported')),
             ]),
@@ -913,7 +907,7 @@ class _NoteTile extends StatelessWidget {
                   color: folderColor.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: Icon(Icons.sticky_note_2_rounded,
+                child: Icon(PhosphorIcons.notebook(),
                     color: folderColor.computeLuminance() > 0.8
                         ? scheme.primary
                         : folderColor,
@@ -947,7 +941,7 @@ class _NoteTile extends StatelessWidget {
               ),
               if (note.hasAttachedFile)
                 IconButton(
-                  icon: const Icon(Icons.open_in_new_rounded, size: 20),
+                  icon: Icon(PhosphorIcons.arrowSquareOut(), size: 20),
                   tooltip: 'Open file',
                   onPressed: () async {
                     final path = note.attachedFilePath;
@@ -962,7 +956,7 @@ class _NoteTile extends StatelessWidget {
                   },
                 )
               else
-                Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+                Icon(PhosphorIcons.caretRight(), color: scheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -998,8 +992,8 @@ class _EmptyNotes extends StatelessWidget {
           children: [
             Icon(
               hasSearch
-                  ? Icons.search_off_rounded
-                  : Icons.note_alt_outlined,
+                  ? PhosphorIcons.magnifyingGlass()
+                  : PhosphorIcons.notebook(),
               size: 64,
               color: theme.colorScheme.outlineVariant,
             ),
@@ -1017,7 +1011,7 @@ class _EmptyNotes extends StatelessWidget {
               const SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: onAdd,
-                icon: const Icon(Icons.edit_note_rounded),
+                icon: Icon(PhosphorIcons.notePencil()),
                 label: const Text('Start writing'),
               ),
             ],

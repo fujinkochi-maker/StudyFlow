@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:study_flow/features/auth/auth_service.dart';
-import 'package:study_flow/nav.dart';
 import 'package:study_flow/state/app_theme_controller.dart';
 import 'package:study_flow/theme.dart';
 
@@ -19,198 +18,17 @@ class ProfilePage extends StatelessWidget {
           SliverAppBar(
             pinned: true,
             backgroundColor: Colors.transparent,
-            title: Text('Profile', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+            title: const Text('Settings'),
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
             sliver: SliverList(
               delegate: SliverChildListDelegate.fixed([
-                _ProfileHeader(),
-                const SizedBox(height: 12),
-                const _LevelAndStreak(),
-                const SizedBox(height: 12),
                 _ThemeCenter(),
-                const SizedBox(height: 12),
-                const _AccountActions(),
               ]),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProfileHeader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final user = context.watch<AuthService>().currentUser;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [scheme.primary, scheme.primary.withValues(alpha: 0.55)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(AppRadius.xl),
-              ),
-              child: Icon(Icons.person_rounded, color: scheme.onPrimary),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(user?.displayName ?? 'Student', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 6),
-                  Text(user?.email ?? 'Local-only profile', style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
-                ],
-              ),
-            ),
-            Icon(Icons.verified_rounded, color: scheme.primary),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LevelAndStreak extends StatelessWidget {
-  const _LevelAndStreak();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final user = context.watch<AuthService>().currentUser;
-    final level = user?.level ?? 1;
-    final streak = user?.streakDays ?? 0;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.auto_graph_rounded, color: Colors.green),
-                      const SizedBox(width: 8),
-                      Text('Level', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text('$level', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 6),
-                  Text('Keep completing tasks + quizzes', style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.local_fire_department_rounded, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      Text('Streak', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text('$streak days', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 6),
-                  Text('Study or finish a task today', style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AccountActions extends StatefulWidget {
-  const _AccountActions();
-
-  @override
-  State<_AccountActions> createState() => _AccountActionsState();
-}
-
-class _AccountActionsState extends State<_AccountActions> {
-  late final TextEditingController _nameCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameCtrl = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final user = context.watch<AuthService>().currentUser;
-    if (_nameCtrl.text.isEmpty && (user?.displayName ?? '').isNotEmpty) {
-      _nameCtrl.text = user!.displayName;
-    }
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Account', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 12),
-            TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: 'Display name')),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () async {
-                      await context.read<AuthService>().updateProfile(displayName: _nameCtrl.text);
-                      if (context.mounted) FocusScope.of(context).unfocus();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated')));
-                    },
-                    icon: const Icon(Icons.save_rounded),
-                    label: const Text('Save'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      await context.read<AuthService>().logout();
-                      if (context.mounted) context.go(AppRoutes.login);
-                    },
-                    icon: Icon(Icons.logout_rounded, color: scheme.error),
-                    label: Text('Log out', style: TextStyle(color: scheme.error)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -234,7 +52,7 @@ class _ThemeCenter extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(color: scheme.primary.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(AppRadius.lg)),
-                  child: Icon(Icons.palette_rounded, color: scheme.primary),
+                  child: Icon(PhosphorIcons.palette(), color: scheme.primary),
                 ),
                 const SizedBox(width: 12),
                 Expanded(child: Text('Themes', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900))),
@@ -267,7 +85,7 @@ class _ThemeCenter extends StatelessWidget {
                 Expanded(
                   child: _ModeTile(
                     title: 'Light',
-                    icon: Icons.light_mode_rounded,
+                    icon: PhosphorIcons.sun(),
                     selected: ctrl.themeMode == ThemeMode.light,
                     onTap: () => context.read<AppThemeController>().setThemeMode(ThemeMode.light),
                   ),
@@ -276,7 +94,7 @@ class _ThemeCenter extends StatelessWidget {
                 Expanded(
                   child: _ModeTile(
                     title: 'Josh',
-                    icon: Icons.dark_mode_rounded,
+                    icon: PhosphorIcons.moon(),
                     selected: ctrl.themeMode == ThemeMode.dark,
                     onTap: () => context.read<AppThemeController>().setThemeMode(ThemeMode.dark),
                   ),
@@ -285,7 +103,7 @@ class _ThemeCenter extends StatelessWidget {
                 Expanded(
                   child: _ModeTile(
                     title: 'Auto',
-                    icon: Icons.brightness_auto_rounded,
+                    icon: PhosphorIcons.monitor(),
                     selected: ctrl.themeMode == ThemeMode.system,
                     onTap: () => context.read<AppThemeController>().setThemeMode(ThemeMode.system),
                   ),
@@ -345,7 +163,7 @@ class _PresetTile extends StatelessWidget {
                     ),
                   ),
                 const Spacer(),
-                if (selected) Icon(Icons.check_circle_rounded, color: scheme.primary, size: 18),
+                if (selected) Icon(PhosphorIcons.checkCircle(), color: scheme.primary, size: 18),
               ],
             ),
             const SizedBox(height: 10),
@@ -397,7 +215,7 @@ class _CustomTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(99),
                     child: Padding(
                       padding: const EdgeInsets.all(4),
-                      child: Icon(Icons.close_rounded, color: scheme.onSurfaceVariant, size: 16),
+                      child: Icon(PhosphorIcons.x(), color: scheme.onSurfaceVariant, size: 16),
                     ),
                   ),
               ],
@@ -496,7 +314,7 @@ class _CustomColorSheetState extends State<_CustomColorSheet> {
             Row(
               children: [
                 Expanded(child: Text('Custom theme color', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900))),
-                IconButton(onPressed: () => context.pop(), icon: Icon(Icons.close_rounded, color: scheme.onSurface)),
+                IconButton(onPressed: () => context.pop(), icon: Icon(PhosphorIcons.x(), color: scheme.onSurface)),
               ],
             ),
             const SizedBox(height: 10),
@@ -524,7 +342,7 @@ class _CustomColorSheetState extends State<_CustomColorSheet> {
                   await context.read<AppThemeController>().setCustomSeed(c);
                   if (context.mounted) context.pop();
                 },
-                icon: const Icon(Icons.check_rounded),
+                icon: Icon(PhosphorIcons.check()),
                 label: const Text('Apply'),
               ),
             ),

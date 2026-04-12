@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:study_flow/features/tasks/task.dart';
@@ -48,7 +49,7 @@ class _CalendarPageState extends State<CalendarPage> {
               SliverAppBar(
                 pinned: true,
                 backgroundColor: Colors.transparent,
-                title: Text('Calendar', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                title: const Text('Calendar'),
               ),
               SliverToBoxAdapter(
                 child: Padding(
@@ -68,8 +69,8 @@ class _CalendarPageState extends State<CalendarPage> {
                           formatButtonVisible: false,
                           titleCentered: true,
                           titleTextStyle: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700) ?? const TextStyle(),
-                          leftChevronIcon: Icon(Icons.chevron_left_rounded, color: theme.colorScheme.primary),
-                          rightChevronIcon: Icon(Icons.chevron_right_rounded, color: theme.colorScheme.primary),
+                          leftChevronIcon: Icon(PhosphorIcons.caretLeft(), color: theme.colorScheme.primary),
+                          rightChevronIcon: Icon(PhosphorIcons.caretRight(), color: theme.colorScheme.primary),
                         ),
                         calendarStyle: CalendarStyle(
                           outsideDaysVisible: true,
@@ -156,7 +157,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     child: Center(
                       child: Column(
                         children: [
-                          Icon(Icons.calendar_today_rounded, size: 48, color: theme.colorScheme.outlineVariant),
+                          Icon(PhosphorIcons.calendarBlank(), size: 48, color: theme.colorScheme.outlineVariant),
                           const SizedBox(height: 12),
                           Text(
                             'No tasks scheduled',

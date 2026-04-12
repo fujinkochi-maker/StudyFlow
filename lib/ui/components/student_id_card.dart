@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:study_flow/features/student_id/student_id_service.dart';
 import 'package:study_flow/theme.dart';
@@ -116,10 +119,10 @@ class _StudentIdCardView extends StatelessWidget {
                             children: [
                               Text(
                                 'Student ID',
-                                style: TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 18,
+                                style: GoogleFonts.crimsonText(
+                                  fontWeight: FontWeight.w600,
+                                  fontStyle: FontStyle.italic,
+                                  fontSize: 20,
                                   color: cardFg,
                                   letterSpacing: -0.5,
                                 ),
@@ -186,7 +189,7 @@ class _PhotoBox extends StatelessWidget {
       child = Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.person_rounded, color: fg.withValues(alpha: 0.4), size: 28),
+          Icon(PhosphorIcons.user(), color: fg.withValues(alpha: 0.4), size: 28),
           const SizedBox(height: 4),
           Text('No Photo', style: TextStyle(color: fg.withValues(alpha: 0.4), fontSize: 9, fontWeight: FontWeight.w600)),
         ],
@@ -401,7 +404,7 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
                       ),
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(Icons.close_rounded, color: scheme.onSurface),
+                        icon: Icon(PhosphorIcons.x(), color: scheme.onSurface),
                       ),
                     ]),
                     const SizedBox(height: 18),
@@ -558,7 +561,7 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
                         onPressed: _saving ? null : _save,
                         icon: _saving
                             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                            : const Icon(Icons.save_rounded),
+                            : Icon(PhosphorIcons.floppyDisk()),
                         label: const Text('Save Changes'),
                       ),
                     ),
@@ -572,27 +575,31 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
     );
   }
 
-  // ── Image picking (simulated — uses a demo picker since image_picker not available) ──
+  // ── Image picking using file_picker ──
 
   Future<void> _pickPhoto() async {
-    // Show a simple dialog since we can't access the real image_picker without pubspec changes.
-    // We demonstrate with a base64 placeholder that the developer replaces with image_picker.
-    final result = await showDialog<String?>(
-      context: context,
-      builder: (ctx) => _Base64InputDialog(title: 'Paste Photo Base64'),
+    final result = await FilePicker.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+      withData: true,
     );
-    if (result != null && result.isNotEmpty) {
-      setState(() => _photoBase64 = result);
+    if (result != null && result.files.isNotEmpty && result.files.first.bytes != null) {
+      final bytes = result.files.first.bytes!;
+      final base64 = base64Encode(bytes);
+      setState(() => _photoBase64 = base64);
     }
   }
 
   Future<void> _pickBgImage() async {
-    final result = await showDialog<String?>(
-      context: context,
-      builder: (ctx) => _Base64InputDialog(title: 'Paste Background Image Base64'),
+    final result = await FilePicker.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+      withData: true,
     );
-    if (result != null && result.isNotEmpty) {
-      setState(() => _bgImageBase64 = result);
+    if (result != null && result.files.isNotEmpty && result.files.first.bytes != null) {
+      final bytes = result.files.first.bytes!;
+      final base64 = base64Encode(bytes);
+      setState(() => _bgImageBase64 = base64);
     }
   }
 
@@ -615,8 +622,8 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(children: [
-              Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            content: Row(children: [
+              Icon(PhosphorIcons.check(), color: Colors.white, size: 18),
               SizedBox(width: 10),
               Text('Student ID updated!'),
             ]),
@@ -699,7 +706,7 @@ class _PhotoUploadButton extends StatelessWidget {
       Expanded(
         child: OutlinedButton.icon(
           onPressed: onPickImage,
-          icon: const Icon(Icons.upload_rounded, size: 18),
+          icon: Icon(PhosphorIcons.upload(), size: 18),
           label: Text(label),
           style: OutlinedButton.styleFrom(
             foregroundColor: const Color(0xFF4CAF82),
@@ -714,7 +721,7 @@ class _PhotoUploadButton extends StatelessWidget {
         IconButton(
           tooltip: 'Remove',
           onPressed: onClear,
-          icon: Icon(Icons.delete_outline_rounded, color: scheme.error),
+          icon: Icon(PhosphorIcons.trash(), color: scheme.error),
         ),
       ],
     ]);

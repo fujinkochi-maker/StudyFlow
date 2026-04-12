@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:study_flow/features/tasks/task.dart';
 import 'package:study_flow/features/tasks/task_service.dart';
@@ -77,7 +78,7 @@ class _TasksPageState extends State<TasksPage>
           SliverAppBar(
             pinned: true,
             backgroundColor: Colors.transparent,
-            title: Text('Tasks', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+            title: const Text('Tasks'),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -173,7 +174,7 @@ class _TasksPageState extends State<TasksPage>
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: () => Navigator.of(context).pop(true),
-                    icon: const Icon(Icons.delete_rounded),
+                    icon:Icon(PhosphorIcons.trash()),
                     label: const Text('Delete'),
                     style: FilledButton.styleFrom(
                       backgroundColor: theme.colorScheme.error,
@@ -194,7 +195,7 @@ class _TasksPageState extends State<TasksPage>
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Row(children: [
-            const Icon(Icons.check_circle_rounded,
+             Icon(PhosphorIcons.checkCircle(),
                 color: Colors.white, size: 18),
             const SizedBox(width: 10),
             Flexible(child: Text('Task "${t.title}" deleted')),
@@ -259,9 +260,9 @@ class _AllTasksTab extends StatelessWidget {
           controller: searchCtrl,
           onChanged: (_) {},
           textInputAction: TextInputAction.search,
-          decoration: const InputDecoration(
+          decoration:  InputDecoration(
             hintText: 'Search tasks…',
-            prefixIcon: Icon(Icons.search_rounded),
+            prefixIcon: Icon(PhosphorIcons.magnifyingGlass()),
           ),
         ),
       ),
@@ -370,7 +371,7 @@ class _ByCourseTab extends StatelessWidget {
               ),
               FilledButton.tonalIcon(
                 onPressed: () => _showAddCourseSheet(context),
-                icon: const Icon(Icons.add_rounded, size: 18),
+                icon:  Icon(PhosphorIcons.plus(), size: 18),
                 label: const Text('Add course'),
               ),
             ]),
@@ -447,7 +448,7 @@ class _CourseSectionState extends State<_CourseSection> {
     final course = widget.course;
     final iconData = course != null
         ? IconData(course.iconCodePoint, fontFamily: 'MaterialIcons')
-        : Icons.inbox_rounded;
+        : PhosphorIcons.tray();
     final name = course?.name ?? 'Uncategorised';
     final done =
         widget.tasks.where((t) => t.status == TaskStatus.done).length;
@@ -501,7 +502,7 @@ class _CourseSectionState extends State<_CourseSection> {
                 // + add task
                 IconButton(
                   tooltip: 'Add task to $name',
-                  icon: Icon(Icons.add_circle_outline_rounded,
+                  icon: Icon(PhosphorIcons.plusCircle(),
                       color: scheme.primary),
                   onPressed: widget.onAddTask,
                 ),
@@ -510,7 +511,7 @@ class _CourseSectionState extends State<_CourseSection> {
                   turns: _expanded ? 0 : -0.25,
                   duration: AppTokens.motionFast,
                   child:
-                      Icon(Icons.expand_more_rounded, color: scheme.onSurfaceVariant),
+                      Icon(PhosphorIcons.caretDown(), color: scheme.onSurfaceVariant),
                 ),
               ]),
             ),
@@ -567,7 +568,7 @@ class _CourseMenuButton extends StatelessWidget {
     return PopupMenuButton<String>(
       tooltip: 'Course options',
       icon:
-          Icon(Icons.more_vert_rounded, color: theme.colorScheme.onSurfaceVariant),
+          Icon(PhosphorIcons.dotsThreeVertical(), color: theme.colorScheme.onSurfaceVariant),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg)),
       onSelected: (value) async {
@@ -586,7 +587,7 @@ class _CourseMenuButton extends StatelessWidget {
         PopupMenuItem(
           value: 'edit',
           child: Row(children: [
-            Icon(Icons.edit_rounded,
+            Icon(PhosphorIcons.pencilSimple(),
                 size: 18, color: theme.colorScheme.onSurface),
             const SizedBox(width: 10),
             const Text('Edit course'),
@@ -595,7 +596,7 @@ class _CourseMenuButton extends StatelessWidget {
         PopupMenuItem(
           value: 'delete',
           child: Row(children: [
-            Icon(Icons.delete_rounded,
+            Icon(PhosphorIcons.trash(),
                 size: 18, color: theme.colorScheme.error),
             const SizedBox(width: 10),
             Text('Delete course',
@@ -652,7 +653,7 @@ class _CourseMenuButton extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Row(children: [
-            const Icon(Icons.check_circle_rounded,
+             Icon(PhosphorIcons.checkCircle(),
                 color: Colors.white, size: 18),
             const SizedBox(width: 10),
             Flexible(child: Text('Course "${course.name}" deleted')),
@@ -716,7 +717,7 @@ class _CourseEditorSheetState extends State<_CourseEditorSheet> {
               ),
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
-                icon: Icon(Icons.close_rounded,
+                icon: Icon(PhosphorIcons.x(),
                     color: theme.colorScheme.onSurface),
               ),
             ]),
@@ -752,7 +753,7 @@ class _CourseEditorSheetState extends State<_CourseEditorSheet> {
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: () => _save(context),
-                icon: Icon(isEdit ? Icons.save_rounded : Icons.add_rounded),
+                icon: Icon(isEdit ? PhosphorIcons.floppyDisk() : PhosphorIcons.plus()),
                 label: Text(isEdit ? 'Save changes' : 'Create course'),
               ),
             ),
@@ -799,7 +800,7 @@ class _CourseEditorSheetState extends State<_CourseEditorSheet> {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Row(children: [
-          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+           Icon(PhosphorIcons.checkCircle(), color: Colors.white, size: 18),
           const SizedBox(width: 10),
           Text(isEdit ? 'Course updated!' : 'Course "$name" created!'),
         ]),
@@ -908,7 +909,7 @@ class _TaskEditorSheetState extends State<_TaskEditorSheet> {
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: Icon(Icons.close_rounded,
+                  icon: Icon(PhosphorIcons.x(),
                       color: theme.colorScheme.onSurface),
                 ),
               ]),
@@ -956,7 +957,7 @@ class _TaskEditorSheetState extends State<_TaskEditorSheet> {
                   child: Row(children: [
                     _CourseChip(
                       label: 'None',
-                      icon: Icons.inbox_rounded,
+                      icon: PhosphorIcons.tray(),
                       selected: _selectedCourseId == null,
                       onTap: () => setState(() => _selectedCourseId = null),
                     ),
@@ -990,7 +991,7 @@ class _TaskEditorSheetState extends State<_TaskEditorSheet> {
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                       child: Row(children: [
-                        Icon(Icons.event_rounded,
+                        Icon(PhosphorIcons.calendarBlank(),
                             color: theme.colorScheme.onSurfaceVariant),
                         const SizedBox(width: 10),
                         Expanded(
@@ -1012,7 +1013,7 @@ class _TaskEditorSheetState extends State<_TaskEditorSheet> {
                   tooltip: 'Clear due date',
                   onPressed:
                       _dueAt == null ? null : () => setState(() => _dueAt = null),
-                  icon: Icon(Icons.backspace_rounded,
+                  icon: Icon(PhosphorIcons.backspace(),
                       color: theme.colorScheme.onSurfaceVariant),
                 ),
               ]),
@@ -1024,19 +1025,19 @@ class _TaskEditorSheetState extends State<_TaskEditorSheet> {
                       ?.copyWith(fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
               SegmentedButton<TaskPriority>(
-                segments: const [
+                segments:  [
                   ButtonSegment(
                       value: TaskPriority.low,
                       label: Text('Low'),
-                      icon: Icon(Icons.spa_rounded)),
+                      icon: Icon(PhosphorIcons.leaf())),
                   ButtonSegment(
                       value: TaskPriority.medium,
                       label: Text('Med'),
-                      icon: Icon(Icons.flash_on_rounded)),
+                      icon: Icon(PhosphorIcons.lightning())),
                   ButtonSegment(
                       value: TaskPriority.high,
                       label: Text('High'),
-                      icon: Icon(Icons.local_fire_department_rounded)),
+                      icon: Icon(PhosphorIcons.flame())),
                 ],
                 selected: {_priority},
                 onSelectionChanged: (s) =>
@@ -1050,7 +1051,7 @@ class _TaskEditorSheetState extends State<_TaskEditorSheet> {
                 onChanged: (v) => setState(() => _reminder = v),
                 title: const Text('Reminders'),
                 subtitle: const Text('Bell icon on task cards'),
-                secondary: const Icon(Icons.notifications_active_rounded),
+                secondary:  Icon(PhosphorIcons.bellRinging()),
                 contentPadding: EdgeInsets.zero,
               ),
               const SizedBox(height: 16),
@@ -1059,7 +1060,7 @@ class _TaskEditorSheetState extends State<_TaskEditorSheet> {
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () => _save(context),
-                  icon: const Icon(Icons.save_rounded),
+                  icon:  Icon(PhosphorIcons.floppyDisk()),
                   label:
                       Text(existing == null ? 'Create task' : 'Save changes'),
                 ),
@@ -1132,7 +1133,7 @@ class _TaskEditorSheetState extends State<_TaskEditorSheet> {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Row(children: [
-          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+           Icon(PhosphorIcons.checkCircle(), color: Colors.white, size: 18),
           const SizedBox(width: 10),
           Flexible(
             child: Text(
@@ -1241,21 +1242,21 @@ class _FiltersRow extends StatelessWidget {
       child: Row(children: [
         _FilterChip(
           label: status == null ? 'Status' : _statusLabel(status!),
-          icon: Icons.tune_rounded,
+          icon: PhosphorIcons.slidersHorizontal(),
           selected: status != null,
           onTap: () => _pickStatus(context),
         ),
         const SizedBox(width: 8),
         _FilterChip(
           label: priority == null ? 'Priority' : _priorityLabel(priority!),
-          icon: Icons.local_fire_department_rounded,
+          icon: PhosphorIcons.flame(),
           selected: priority != null,
           onTap: () => _pickPriority(context),
         ),
         const SizedBox(width: 8),
         _FilterChip(
           label: courseLabel,
-          icon: Icons.school_rounded,
+          icon: PhosphorIcons.graduationCap(),
           selected: courseFilter != null,
           onTap: () => _pickCourse(context, courses),
         ),
@@ -1381,7 +1382,7 @@ class _FilterChip extends StatelessWidget {
               style: theme.textTheme.labelMedium
                   ?.copyWith(color: fg, fontWeight: FontWeight.w700)),
           const SizedBox(width: 2),
-          Icon(Icons.expand_more_rounded, size: 18, color: fg),
+          Icon(PhosphorIcons.caretDown(), size: 18, color: fg),
         ]),
       ),
     );
@@ -1498,7 +1499,7 @@ class _EmptyTasks extends StatelessWidget {
           const SizedBox(height: 14),
           FilledButton.icon(
             onPressed: onCreate,
-            icon: const Icon(Icons.add_rounded),
+            icon:  Icon(PhosphorIcons.plus()),
             label: const Text('Create first task'),
           ),
         ]),
@@ -1527,7 +1528,7 @@ class _NoCourses extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               child:
-                  Icon(Icons.school_rounded, color: theme.colorScheme.primary),
+                  Icon(PhosphorIcons.graduationCap(), color: theme.colorScheme.primary),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1543,7 +1544,7 @@ class _NoCourses extends StatelessWidget {
           const SizedBox(height: 14),
           FilledButton.icon(
             onPressed: onAdd,
-            icon: const Icon(Icons.add_rounded),
+            icon:  Icon(PhosphorIcons.plus()),
             label: const Text('Add first course'),
           ),
         ]),
@@ -1560,7 +1561,7 @@ class _EmptyCourseRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Row(children: [
-      Icon(Icons.inbox_rounded,
+      Icon(PhosphorIcons.tray(),
           size: 16, color: theme.colorScheme.onSurfaceVariant),
       const SizedBox(width: 8),
       Expanded(
@@ -1570,7 +1571,7 @@ class _EmptyCourseRow extends StatelessWidget {
       ),
       TextButton.icon(
         onPressed: onAdd,
-        icon: const Icon(Icons.add_rounded, size: 16),
+        icon:  Icon(PhosphorIcons.plus(), size: 16),
         label: const Text('Add task'),
         style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
       ),
