@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:study_flow/features/student_id/student_id_service.dart';
@@ -24,9 +22,46 @@ class StudentIdCard extends StatelessWidget {
 
 // ─── Card view ────────────────────────────────────────────────────────────────
 
-class _StudentIdCardView extends StatelessWidget {
+class _StudentIdCardView extends StatefulWidget {
   const _StudentIdCardView({required this.svc});
   final StudentIdService svc;
+
+  @override
+  State<_StudentIdCardView> createState() => _StudentIdCardViewState();
+}
+
+class _StudentIdCardViewState extends State<_StudentIdCardView> {
+  double _rotateX = 0.0;
+  double _rotateY = 0.0;
+  bool _isHovering = false;
+
+  StudentIdService get svc => widget.svc;
+
+  void _onPointerMove(PointerEvent event, Size size) {
+    final x = event.localPosition.dx;
+    final y = event.localPosition.dy;
+    
+    // Calculate rotation based on pointer position (-1 to 1 range)
+    final rotateY = ((x / size.width) - 0.5) * 0.5; // Left/Right tilt
+    final rotateX = ((y / size.height) - 0.5) * -0.5; // Up/Down tilt (inverted)
+    
+    setState(() {
+      _rotateX = rotateX;
+      _rotateY = rotateY;
+    });
+  }
+
+  void _onPointerEnter() {
+    setState(() => _isHovering = true);
+  }
+
+  void _onPointerExit() {
+    setState(() {
+      _isHovering = false;
+      _rotateX = 0.0;
+      _rotateY = 0.0;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,110 +89,123 @@ class _StudentIdCardView extends StatelessWidget {
     final bgLuminance = svc.bgColor.computeLuminance();
     final cardFg = (svc.bgMode == 'image' || bgLuminance < 0.4) ? Colors.white : Colors.black;
 
-    return GestureDetector(
-      onLongPress: () => _openCustomize(context),
-      child: Container(
-        height: 188,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.12)
-                : Colors.black.withValues(alpha: 0.08),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.10),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          child: Stack(
-            children: [
-              // Background layer
-              Positioned.fill(child: background),
-
-              // Overlay for readability when using image bg
-              if (svc.bgMode == 'image' && svc.bgImageBase64 != null)
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.black.withValues(alpha: 0.18), Colors.black.withValues(alpha: 0.04)],
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                      ),
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return MouseRegion(
+          onEnter: (_) => _onPointerEnter(),
+          onExit: (_) => _onPointerExit(),
+          onHover: (event) => _onPointerMove(event, constraints.biggest),
+          child: GestureDetector(
+            onLongPress: () => _openCustomize(context),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.001) // perspective
+                ..rotateX(_rotateX)
+                ..rotateY(_rotateY),
+              transformAlignment: Alignment.center,
+              child: Container(
+                height: 220,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.black.withValues(alpha: 0.08),
                   ),
-                ),
-
-              // Card content
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Left: photo + barcode
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _PhotoBox(photoBase64: svc.photoBase64, fg: cardFg),
-                        _Barcode(fg: cardFg),
-                      ],
-                    ),
-                    const SizedBox(width: 14),
-                    // Right: header + fields
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Title row
-                          Row(
-                            children: [
-                              Text(
-                                'Student ID',
-                                style: GoogleFonts.crimsonText(
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FontStyle.italic,
-                                  fontSize: 20,
-                                  color: cardFg,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                          // Dashed divider
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 7),
-                            child: _DashedLine(color: cardFg.withValues(alpha: 0.35)),
-                          ),
-                          // Fields grid
-                          Row(
-                            children: [
-                              Expanded(child: _IdField(label: 'NAME', value: svc.name, fg: cardFg)),
-                              Expanded(child: _IdField(label: 'BIRTHDAY', value: svc.birthday, fg: cardFg)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(child: _IdField(label: 'SCHOOL', value: svc.school, fg: cardFg)),
-                              Expanded(child: _IdField(label: 'YEAR LEVEL', value: svc.yearLevel, fg: cardFg)),
-                            ],
-                          ),
-                        ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.10),
+                      blurRadius: _isHovering ? 30 : 20,
+                      offset: Offset(
+                        _rotateY * 20, // shadow follows tilt
+                        6 + (_rotateX * 10),
                       ),
                     ),
                   ],
                 ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                  child: Stack(
+                    children: [
+                      // Background layer
+                      Positioned.fill(child: background),
+
+                      // Overlay for readability when using image bg
+                      if (svc.bgMode == 'image' && svc.bgImageBase64 != null)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Colors.black.withValues(alpha: 0.18), Colors.black.withValues(alpha: 0.04)],
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Card content
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Left: photo + barcode
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _PhotoBox(photoBase64: svc.photoBase64, fg: cardFg),
+                                _Barcode(fg: cardFg),
+                              ],
+                            ),
+                            const SizedBox(width: 14),
+                            // Right: header + fields
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Logo / Title row
+                                  _LogoWidget(
+                                    logoMode: svc.logoMode,
+                                    logoAssetPath: svc.logoAssetPath,
+                                    logoBase64: svc.logoBase64,
+                                    cardFg: cardFg,
+                                  ),
+                                  // Dashed divider
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 7),
+                                    child: _DashedLine(color: cardFg.withValues(alpha: 0.35)),
+                                  ),
+                                  // Fields grid
+                                  Row(
+                                    children: [
+                                      Expanded(child: _IdField(label: 'NAME', value: svc.name, fg: cardFg)),
+                                      Expanded(child: _IdField(label: 'BIRTHDAY', value: svc.birthday, fg: cardFg)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(child: _IdField(label: 'SCHOOL', value: svc.school, fg: cardFg)),
+                                      Expanded(child: _IdField(label: 'YEAR LEVEL', value: svc.yearLevel, fg: cardFg)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -308,6 +356,57 @@ class _DashPainter extends CustomPainter {
   bool shouldRepaint(_DashPainter old) => old.color != color;
 }
 
+// ─── Logo Widget ──────────────────────────────────────────────────────────────
+
+class _LogoWidget extends StatelessWidget {
+  const _LogoWidget({
+    required this.logoMode,
+    required this.logoAssetPath,
+    required this.logoBase64,
+    required this.cardFg,
+  });
+
+  final String logoMode;
+  final String? logoAssetPath;
+  final String? logoBase64;
+  final Color cardFg;
+
+  @override
+  Widget build(BuildContext context) {
+    // Custom uploaded logo - big header style
+    if (logoMode == 'custom' && logoBase64 != null) {
+      final bytes = base64Decode(logoBase64!);
+      return SizedBox(
+        height: 70,
+        width: double.infinity,
+        child: Image.memory(bytes, fit: BoxFit.contain),
+      );
+    }
+
+    // Premade asset logo - big header style
+    if (logoMode == 'asset' && logoAssetPath != null) {
+      return SizedBox(
+        height: 70,
+        width: double.infinity,
+        child: Image.asset(logoAssetPath!, fit: BoxFit.contain),
+      );
+    }
+
+    // Default text - bigger header style
+    return Text(
+      'Student ID',
+      style: TextStyle(
+        fontFamily: 'CrimsonText',
+        fontWeight: FontWeight.w600,
+        fontStyle: FontStyle.italic,
+        fontSize: 28,
+        color: cardFg,
+        letterSpacing: -0.5,
+      ),
+    );
+  }
+}
+
 // ─── Customize Sheet ──────────────────────────────────────────────────────────
 
 class _CustomizeSheet extends StatefulWidget {
@@ -328,6 +427,11 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
   String? _photoBase64;
   String? _bgImageBase64;
   bool _saving = false;
+
+  // Logo state
+  late String _logoMode;
+  String? _logoAssetPath;
+  String? _logoBase64;
 
   static const _presets = [
     Color(0xFFFFFFFF),
@@ -350,6 +454,9 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
     _bgColor = svc.bgColor;
     _photoBase64 = svc.photoBase64;
     _bgImageBase64 = svc.bgImageBase64;
+    _logoMode = svc.logoMode;
+    _logoAssetPath = svc.logoAssetPath;
+    _logoBase64 = svc.logoBase64;
   }
 
   @override
@@ -453,6 +560,30 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
                       hasPhoto: _photoBase64 != null,
                       onPickImage: _pickPhoto,
                       onClear: () => setState(() => _photoBase64 = null),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Logo ──────────────────────────────────────────────────
+                    _SheetLabel('Logo'),
+                    const SizedBox(height: 8),
+
+                    // Logo grid: Upload + Premade logos
+                    _LogoGrid(
+                      selectedMode: _logoMode,
+                      selectedAsset: _logoAssetPath,
+                      customLogoBase64: _logoBase64,
+                      onSelectText: () => setState(() {
+                        _logoMode = 'text';
+                        _logoAssetPath = null;
+                        _logoBase64 = null;
+                      }),
+                      onSelectAsset: (path) => setState(() {
+                        _logoMode = 'asset';
+                        _logoAssetPath = path;
+                        _logoBase64 = null;
+                      }),
+                      onUploadCustom: _pickLogo,
+                      onClearCustom: () => setState(() => _logoBase64 = null),
                     ),
                     const SizedBox(height: 20),
 
@@ -603,6 +734,19 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
     }
   }
 
+  Future<void> _pickLogo() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+      withData: true,
+    );
+    if (result != null && result.files.isNotEmpty && result.files.first.bytes != null) {
+      final bytes = result.files.first.bytes!;
+      final base64 = base64Encode(bytes);
+      setState(() => _logoBase64 = base64);
+    }
+  }
+
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
@@ -617,6 +761,10 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
         bgColor: _bgMode == 'color' ? _bgColor : null,
         bgImageBase64: _bgImageBase64,
         clearBgImage: _bgImageBase64 == null,
+        logoMode: _logoMode,
+        logoAssetPath: _logoAssetPath,
+        logoBase64: _logoBase64,
+        clearLogo: _logoMode == 'text',
       );
       if (mounted) {
         Navigator.of(context).pop();
@@ -635,6 +783,174 @@ class _CustomizeSheetState extends State<_CustomizeSheet> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+}
+
+// ─── Logo Grid Widget ─────────────────────────────────────────────────────────
+
+class _LogoGrid extends StatelessWidget {
+  const _LogoGrid({
+    required this.selectedMode,
+    required this.selectedAsset,
+    required this.customLogoBase64,
+    required this.onSelectText,
+    required this.onSelectAsset,
+    required this.onUploadCustom,
+    required this.onClearCustom,
+  });
+
+  final String selectedMode;
+  final String? selectedAsset;
+  final String? customLogoBase64;
+  final VoidCallback onSelectText;
+  final ValueChanged<String> onSelectAsset;
+  final VoidCallback onUploadCustom;
+  final VoidCallback onClearCustom;
+
+  // Define your premade logo assets here
+  static const _premadeLogos = [
+    'assets/logos/FURIA_logo.png',
+    'assets/logos/CCS_logo.png',
+    'assets/logos/ROSE_logo.png',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final hasCustomLogo = customLogoBase64 != null;
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      childAspectRatio: 2.5,
+      children: [
+        // Upload custom logo option
+        _LogoOption(
+          isSelected: selectedMode == 'custom' && hasCustomLogo,
+          onTap: hasCustomLogo 
+              ? () {
+                  // If already has custom logo, selecting it just sets mode
+                  if (selectedMode != 'custom') {
+                    onUploadCustom();
+                  }
+                }
+              : onUploadCustom,
+          child: hasCustomLogo && selectedMode == 'custom'
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  child: Image.memory(
+                    base64Decode(customLogoBase64!),
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => _UploadPlaceholder(),
+                  ),
+                )
+              : _UploadPlaceholder(),
+        ),
+
+        // Text option (Student ID)
+        _LogoOption(
+          isSelected: selectedMode == 'text',
+          onTap: onSelectText,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'Student ID',
+              style: TextStyle(
+                fontFamily: 'CrimsonText',
+                fontWeight: FontWeight.w600,
+                fontStyle: FontStyle.italic,
+                fontSize: 20,
+                color: scheme.onSurface,
+              ),
+            ),
+          ),
+        ),
+
+        // Premade logo assets
+        for (final logoPath in _premadeLogos)
+          _LogoOption(
+            isSelected: selectedMode == 'asset' && selectedAsset == logoPath,
+            onTap: () => onSelectAsset(logoPath),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              child: Image.asset(
+                logoPath,
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Container(
+                  color: scheme.surfaceContainerHighest,
+                  child: Center(
+                    child: Text(
+                      logoPath.split('/').last.replaceAll('.png', ''),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _UploadPlaceholder extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(PhosphorIcons.upload(), size: 20, color: scheme.onSurfaceVariant),
+        const SizedBox(height: 4),
+        Text(
+          'Upload a custom logo',
+          style: TextStyle(
+            fontSize: 10,
+            color: scheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+}
+
+class _LogoOption extends StatelessWidget {
+  const _LogoOption({
+    required this.isSelected,
+    required this.onTap,
+    required this.child,
+  });
+
+  final bool isSelected;
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: AppTokens.motionFast,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: isSelected ? scheme.primary : scheme.outline.withValues(alpha: 0.3),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Center(child: child),
+      ),
+    );
   }
 }
 

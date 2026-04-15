@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppSpacing {
   // Spacing values
@@ -168,7 +167,8 @@ ThemeData buildAppTheme({required Brightness brightness, required Color seedColo
       foregroundColor: tuned.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: GoogleFonts.crimsonText(
+      titleTextStyle: TextStyle(
+        fontFamily: 'CrimsonText',
         fontSize: FontSizes.titleLarge,
         fontWeight: FontWeight.w600,
         fontStyle: FontStyle.italic,
@@ -210,9 +210,24 @@ ThemeData buildAppTheme({required Brightness brightness, required Color seedColo
 /// Build text theme using Montserrat for headers and Roboto Mono for body
 TextTheme _buildTextTheme(Brightness brightness) {
   // Headers use Montserrat (clean, geometric, modern)
-  final headerStyle = GoogleFonts.montserrat;
+  TextStyle headerStyle({FontWeight? fontWeight, double? fontSize, double? letterSpacing}) {
+    return TextStyle(
+      fontFamily: 'Montserrat',
+      fontWeight: fontWeight,
+      fontSize: fontSize,
+      letterSpacing: letterSpacing,
+    );
+  }
   // Body text uses Roboto Mono (monospace, readable)
-  final bodyStyle = GoogleFonts.robotoMono;
+  TextStyle bodyStyle({FontWeight? fontWeight, double? fontSize, double? letterSpacing, double? height}) {
+    return TextStyle(
+      fontFamily: 'RobotoMono',
+      fontWeight: fontWeight,
+      fontSize: fontSize,
+      letterSpacing: letterSpacing,
+      height: height,
+    );
+  }
 
   return TextTheme(
     // Display & Headlines - Montserrat

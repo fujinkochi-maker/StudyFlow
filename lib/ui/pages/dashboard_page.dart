@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:study_flow/features/student_id/student_id_service.dart';
 import 'package:study_flow/features/tasks/task_service.dart';
 import 'package:study_flow/nav.dart';
 import 'package:study_flow/theme.dart';
@@ -10,8 +11,46 @@ import 'package:study_flow/ui/components/animated_list_wrapper.dart';
 import 'package:study_flow/ui/components/student_id_card.dart';
 import 'package:study_flow/ui/components/task_card.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  bool _showStats = true;
+
+  Widget _buildToggleHeader(String title, bool isExpanded, VoidCallback onToggle) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onToggle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            AnimatedRotation(
+              turns: isExpanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                PhosphorIcons.caretDown(),
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +62,7 @@ class DashboardPage extends StatelessWidget {
           SliverAppBar(
             pinned: true,
             backgroundColor: Colors.transparent,
-            title: const Text('Dashboard'),
+            title: const Text('Home'),
             actions: [
               IconButton(
                 onPressed: () {},
@@ -34,7 +73,40 @@ class DashboardPage extends StatelessWidget {
             ],
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
-          // ── Student ID Card ──────────────────────────────────────────────
+          // ── Greeting ────────────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: AppSpacing.horizontalMd,
+              child: Consumer<StudentIdService>(
+                builder: (context, svc, _) {
+                  final name = svc.name == 'YOUR NAME' ? 'User' : svc.name.split(' ').first;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hello There,',
+                        style: TextStyle(
+                          fontFamily: 'CrimsonText',
+                          fontSize: 35,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(name,
+                        style: TextStyle(
+                          fontFamily: 'RobotoMono',
+                          fontSize: 25,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 2.2,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          // ── Student ID Card (Always visible) ───────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
               padding: AppSpacing.horizontalMd,
@@ -42,10 +114,28 @@ class DashboardPage extends StatelessWidget {
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
-          SliverToBoxAdapter(child: Padding(padding: AppSpacing.horizontalMd, child: _StatsRow())),
-          const SliverToBoxAdapter(child: SizedBox(height: 14)),
-          SliverToBoxAdapter(child: Padding(padding: AppSpacing.horizontalMd, child: _ProgressAndStreak())),
+          // ── Stats & Progress (Collapsible together) ────────────────────────
+          SliverToBoxAdapter(
+            child: _buildToggleHeader('Stats & Progress', _showStats, () {
+              setState(() => _showStats = !_showStats);
+            }),
+          ),
+          SliverToBoxAdapter(
+            child: AnimatedCrossFade(
+              firstChild: Column(
+                children: [
+                  Padding(padding: AppSpacing.horizontalMd, child: _StatsRow()),
+                  const SizedBox(height: 14),
+                  Padding(padding: AppSpacing.horizontalMd, child: _ProgressAndStreak()),
+                ],
+              ),
+              secondChild: const SizedBox.shrink(),
+              crossFadeState: _showStats ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+              duration: const Duration(milliseconds: 250),
+            ),
+          ),
           const SliverToBoxAdapter(child: SizedBox(height: 18)),
+          // ── Upcoming Tasks (Always visible) ──────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
               padding: AppSpacing.horizontalMd,
@@ -188,33 +278,33 @@ class _ProgressAndStreak extends StatelessWidget {
                 builder: (context, tasks, _) {
                   final ratio = tasks.completionRatio;
                   final percent = (ratio * 100).round();
-                  return Row(
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       SizedBox(
-                        width: 72,
-                        height: 72,
+                        width: 56,
+                        height: 56,
                         child: PieChart(
                           PieChartData(
                             startDegreeOffset: -90,
                             sectionsSpace: 0,
-                            centerSpaceRadius: 26,
+                            centerSpaceRadius: 20,
                             sections: [
-                              PieChartSectionData(value: ratio * 100, radius: 10, showTitle: false, color: scheme.primary),
-                              PieChartSectionData(value: (1 - ratio) * 100, radius: 10, showTitle: false, color: scheme.surfaceContainerHighest),
+                              PieChartSectionData(value: ratio * 100, radius: 8, showTitle: false, color: scheme.primary),
+                              PieChartSectionData(value: (1 - ratio) * 100, radius: 8, showTitle: false, color: scheme.surfaceContainerHighest),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Progress', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 6),
-                            Text('$percent% complete', style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
-                          ],
-                        ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '$percent%',
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      Text(
+                        'Progress',
+                        style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
                       ),
                     ],
                   );

@@ -19,6 +19,12 @@ class StudentIdService extends ChangeNotifier {
   int _bgColorValue = 0xFFFFFFFF;
   /// Base-64 encoded background image bytes, or null
   String? _bgImageBase64;
+  /// Logo mode: 'text', 'asset', or 'custom'
+  String _logoMode = 'text';
+  /// Path to premade logo asset (e.g., 'assets/logos/logo1.png')
+  String? _logoAssetPath;
+  /// Base-64 encoded custom logo image bytes, or null
+  String? _logoBase64;
 
   bool _loaded = false;
 
@@ -31,6 +37,9 @@ class StudentIdService extends ChangeNotifier {
   String get bgMode => _bgMode;
   Color get bgColor => Color(_bgColorValue);
   String? get bgImageBase64 => _bgImageBase64;
+  String get logoMode => _logoMode;
+  String? get logoAssetPath => _logoAssetPath;
+  String? get logoBase64 => _logoBase64;
 
   Future<void> load() async {
     try {
@@ -46,6 +55,9 @@ class StudentIdService extends ChangeNotifier {
         _bgMode = (map['bgMode'] as String?) ?? _bgMode;
         _bgColorValue = (map['bgColorValue'] as int?) ?? _bgColorValue;
         _bgImageBase64 = map['bgImageBase64'] as String?;
+        _logoMode = (map['logoMode'] as String?) ?? _logoMode;
+        _logoAssetPath = map['logoAssetPath'] as String?;
+        _logoBase64 = map['logoBase64'] as String?;
       }
     } catch (e) {
       debugPrint('StudentIdService.load error: $e');
@@ -66,6 +78,10 @@ class StudentIdService extends ChangeNotifier {
     Color? bgColor,
     String? bgImageBase64,
     bool clearBgImage = false,
+    String? logoMode,
+    String? logoAssetPath,
+    String? logoBase64,
+    bool clearLogo = false,
   }) async {
     if (name != null) _name = name.trim().isEmpty ? _name : name.trim();
     if (birthday != null) _birthday = birthday.trim().isEmpty ? _birthday : birthday.trim();
@@ -82,6 +98,15 @@ class StudentIdService extends ChangeNotifier {
       _bgImageBase64 = null;
     } else if (bgImageBase64 != null) {
       _bgImageBase64 = bgImageBase64;
+    }
+    if (logoMode != null) _logoMode = logoMode;
+    if (logoAssetPath != null) _logoAssetPath = logoAssetPath;
+    if (clearLogo) {
+      _logoBase64 = null;
+      _logoAssetPath = null;
+      _logoMode = 'text';
+    } else if (logoBase64 != null) {
+      _logoBase64 = logoBase64;
     }
     notifyListeners();
     await _persist();
@@ -101,6 +126,9 @@ class StudentIdService extends ChangeNotifier {
           'bgMode': _bgMode,
           'bgColorValue': _bgColorValue,
           'bgImageBase64': _bgImageBase64,
+          'logoMode': _logoMode,
+          'logoAssetPath': _logoAssetPath,
+          'logoBase64': _logoBase64,
         }),
       );
     } catch (e) {

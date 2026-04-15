@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:study_flow/features/tasks/task.dart';
+import 'package:study_flow/services/haptic_service.dart';
 import 'package:study_flow/theme.dart';
 import 'package:study_flow/ui/components/pill.dart';
 
@@ -18,9 +20,9 @@ class TaskCard extends StatelessWidget {
     final dueText = task.dueAt == null ? 'No due date' : _formatDue(context, task.dueAt!);
     final dueColor = task.isOverdue ? scheme.error : scheme.onSurfaceVariant;
     final statusIcon = switch (task.status) {
-      TaskStatus.todo => Icons.radio_button_unchecked_rounded,
-      TaskStatus.inProgress => Icons.timelapse_rounded,
-      TaskStatus.done => Icons.check_circle_rounded,
+      TaskStatus.todo => PhosphorIcons.circle(),
+      TaskStatus.inProgress => PhosphorIcons.clock(),
+      TaskStatus.done => PhosphorIcons.checkCircle(),
     };
     final statusColor = switch (task.status) {
       TaskStatus.todo => scheme.onSurfaceVariant,
@@ -34,10 +36,12 @@ class TaskCard extends StatelessWidget {
       TaskPriority.high => Colors.red,
     };
 
-    return Card(
-      child: Padding(
-        padding: AppSpacing.paddingMd,
-        child: Column(
+    return GestureDetector(
+      onLongPress: () => _showTaskOptions(context, scheme),
+      child: Card(
+        child: Padding(
+          padding: AppSpacing.paddingMd,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -63,12 +67,12 @@ class TaskCard extends StatelessWidget {
                         runSpacing: 8,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Pill(label: task.subject, color: scheme.primary, icon: Icons.sell_rounded),
-                          Pill(label: _priorityLabel(task.priority), color: priorityColor, icon: Icons.local_fire_department_rounded),
+                          Pill(label: task.subject, color: scheme.primary, icon: PhosphorIcons.tag()),
+                          Pill(label: _priorityLabel(task.priority), color: priorityColor, icon: PhosphorIcons.fire()),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.event_rounded, size: 16, color: dueColor),
+                              Icon(PhosphorIcons.calendarBlank(), size: 16, color: dueColor),
                               const SizedBox(width: 6),
                               Text(dueText, style: theme.textTheme.bodySmall?.copyWith(color: dueColor, fontWeight: FontWeight.w500)),
                             ],
@@ -77,7 +81,7 @@ class TaskCard extends StatelessWidget {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.notifications_active_rounded, size: 16, color: scheme.primary),
+                                Icon(PhosphorIcons.bellRinging(), size: 16, color: scheme.primary),
                                 const SizedBox(width: 6),
                                 Text('Reminder', style: theme.textTheme.bodySmall?.copyWith(color: scheme.primary, fontWeight: FontWeight.w600)),
                               ],
@@ -87,23 +91,38 @@ class TaskCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                PopupMenuButton<String>(
-                  icon: Icon(Icons.more_horiz_rounded, color: scheme.onSurfaceVariant),
-                  onSelected: (v) {
-                    switch (v) {
-                      case 'edit':
-                        onEdit();
-                      case 'delete':
-                        onDelete();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_rounded, color: scheme.onSurface), const SizedBox(width: 8), const Text('Edit')])),
-                    PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_rounded, color: scheme.error), const SizedBox(width: 8), Text('Delete', style: TextStyle(color: scheme.error))])),
-                  ],
-                ),
               ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+  }
+
+  void _showTaskOptions(BuildContext context, ColorScheme scheme) {
+    HapticService.medium();
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(PhosphorIcons.pencilSimple(), color: scheme.onSurface),
+              title: const Text('Edit'),
+              onTap: () {
+                Navigator.of(context).pop();
+                onEdit();
+              },
+            ),
+            ListTile(
+              leading: Icon(PhosphorIcons.trash(), color: scheme.error),
+              title: Text('Delete', style: TextStyle(color: scheme.error)),
+              onTap: () {
+                Navigator.of(context).pop();
+                onDelete();
+              },
             ),
           ],
         ),

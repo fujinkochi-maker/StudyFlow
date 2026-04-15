@@ -4,10 +4,12 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:study_flow/features/notes/notes_service.dart';
 import 'package:study_flow/features/study/study_service.dart';
+import 'package:study_flow/features/tasks/task.dart';
 import 'package:study_flow/features/tasks/task_service.dart';
 import 'package:study_flow/nav.dart';
 import 'package:study_flow/state/app_theme_controller.dart';
 import 'package:study_flow/theme.dart';
+import 'package:study_flow/ui/components/student_id_card.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.navigationShell});
@@ -42,12 +44,13 @@ class _AppShellState extends State<AppShell>
   }
 
   static final _items = <_NavItem>[
-    _NavItem(label: 'Dashboard', icon: PhosphorIcons.house(), route: AppRoutes.dashboard),
+    _NavItem(label: 'Home', icon: PhosphorIcons.house(), route: AppRoutes.dashboard),
     _NavItem(label: 'Tasks',     icon: PhosphorIcons.checkCircle(), route: AppRoutes.tasks),
     _NavItem(label: 'Notes',     icon: PhosphorIcons.notebook(), route: AppRoutes.notes),
+    _NavItem(label: 'Class',  icon: PhosphorIcons.calendarCheck(), route: AppRoutes.schedule),
     _NavItem(label: 'Study',     icon: PhosphorIcons.brain(), route: AppRoutes.study),
     _NavItem(label: 'Calendar',  icon: PhosphorIcons.calendarBlank(), route: AppRoutes.calendar),
-    _NavItem(label: 'Profile',   icon: PhosphorIcons.user(), route: AppRoutes.profile),
+    _NavItem(label: 'Settings',  icon: PhosphorIcons.gear(), route: AppRoutes.profile),
   ];
 
   @override
@@ -80,7 +83,6 @@ class _AppShellState extends State<AppShell>
         }
       },
       body: _AnimatedTabBody(navigationShell: widget.navigationShell),
-      // ─── Modern floating pill navbar ───────────────────────────────────
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
@@ -108,7 +110,7 @@ class _AppShellState extends State<AppShell>
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
                 elevation: 0,
-                height: 64,
+                height: 72,
                 labelBehavior:
                     NavigationDestinationLabelBehavior.onlyShowSelected,
                 indicatorColor:
@@ -146,10 +148,16 @@ class _ShellFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (currentIndex != 1) return const SizedBox.shrink();
-    return FloatingActionButton.extended(
-      onPressed: () => TasksPageActions.openCreateTaskSheet(context),
-      icon: const Icon(Icons.add_rounded),
-      label: const Text('New task'),
+    return ValueListenableBuilder<bool>(
+      valueListenable: TasksPageActions.isDialogOpen,
+      builder: (context, isOpen, child) {
+        if (isOpen) return const SizedBox.shrink();
+        return FloatingActionButton.extended(
+          onPressed: () => TasksPageActions.openCreateTaskSheet(context),
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('New task'),
+        );
+      },
     );
   }
 }
@@ -326,6 +334,8 @@ class _AppDrawer extends StatelessWidget {
     final theme = Theme.of(context);
     final themeMode = context.watch<AppThemeController>().themeMode;
     final isDark = themeMode == ThemeMode.dark;
+    final tasks = context.watch<TaskService>();
+    final pendingCount = tasks.tasks.where((t) => t.status != TaskStatus.done).length;
 
     return Drawer(
       shape: const RoundedRectangleBorder(
@@ -336,11 +346,14 @@ class _AppDrawer extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // ── Profile header ────────────────────────────────────────────
-          _DrawerHeader(
-            initial: 'S',
-            displayName: 'Student',
-            email: 'Study Flow App',
+          // ── Student ID Card ───────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: Transform.scale(
+              scale: 0.85,
+              alignment: Alignment.topCenter,
+              child: const StudentIdCard(),
+            ),
           ),
 
           // ── Quick stats bar ───────────────────────────────────────────
@@ -356,7 +369,7 @@ class _AppDrawer extends StatelessWidget {
                   _DrawerNavTile(
                     item: _AppShellState._items[i],
                     isSelected: navigationShell.currentIndex == i,
-                    badge: i == 1 ? '4' : null, // tasks badge example
+                    badge: i == 1 && pendingCount > 0 ? '$pendingCount' : null,
                     onTap: () {
                       Navigator.of(context).pop();
                       navigationShell.goBranch(i, initialLocation: true);
@@ -396,109 +409,6 @@ class _AppDrawer extends StatelessWidget {
                   isDark ? ThemeMode.light : ThemeMode.dark;
               context.read<AppThemeController>().setThemeMode(newMode);
             },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Header ────────────────────────────────────────────────────────────────────
-
-class _DrawerHeader extends StatelessWidget {
-  const _DrawerHeader({
-    required this.initial,
-    required this.displayName,
-    required this.email,
-  });
-  final String initial;
-  final String displayName;
-  final String email;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      color: theme.colorScheme.primary,
-      padding: EdgeInsets.fromLTRB(
-          20, MediaQuery.of(context).padding.top + 24, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Avatar with rounded square shape
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              initial,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            displayName,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            email,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onPrimary.withValues(alpha: 0.72),
-            ),
-          ),
-          const SizedBox(height: 14),
-          // Streak badge
-          _StreakBadge(theme: theme),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Streak Badge ──────────────────────────────────────────────────────────────
-
-class _StreakBadge extends StatelessWidget {
-  const _StreakBadge({required this.theme});
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: const Color(0xFF9FE1CB),
-              borderRadius: BorderRadius.circular(3),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'Keep studying!',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onPrimary,
-            ),
           ),
         ],
       ),
@@ -705,6 +615,7 @@ class _DrawerBottom extends StatelessWidget {
 
 abstract class TasksPageActions {
   static VoidCallback? _registered;
+  static final isDialogOpen = ValueNotifier<bool>(false);
   static void register(VoidCallback cb) => _registered = cb;
   static void unregister() => _registered = null;
   static void openCreateTaskSheet(BuildContext context) => _registered?.call();

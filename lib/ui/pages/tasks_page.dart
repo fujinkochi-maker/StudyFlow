@@ -198,7 +198,7 @@ class _TasksPageState extends State<TasksPage>
              Icon(PhosphorIcons.checkCircle(),
                 color: Colors.white, size: 18),
             const SizedBox(width: 10),
-            Flexible(child: Text('Task "${t.title}" deleted')),
+            Flexible(child: Text('Task "${t.title}" deleted', style: const TextStyle(color: Colors.white))),
           ]),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red.shade700,
@@ -210,6 +210,7 @@ class _TasksPageState extends State<TasksPage>
 
   Future<void> _openTaskSheet(BuildContext context,
       {Task? existing, String? preselectedCourseId}) async {
+    TasksPageActions.isDialogOpen.value = true;
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -219,6 +220,7 @@ class _TasksPageState extends State<TasksPage>
         preselectedCourseId: preselectedCourseId,
       ),
     );
+    TasksPageActions.isDialogOpen.value = false;
   }
 }
 
@@ -802,7 +804,7 @@ class _CourseEditorSheetState extends State<_CourseEditorSheet> {
         content: Row(children: [
            Icon(PhosphorIcons.checkCircle(), color: Colors.white, size: 18),
           const SizedBox(width: 10),
-          Text(isEdit ? 'Course updated!' : 'Course "$name" created!'),
+          Text(isEdit ? 'Course updated!' : 'Course "$name" created!', style: const TextStyle(color: Colors.white)),
         ]),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.green.shade700,

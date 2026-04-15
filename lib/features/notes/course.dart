@@ -20,7 +20,7 @@ class Course {
   final int? folderColorValue;
 
   Color? get folderColor => folderColorValue == null ? null : Color(folderColorValue!);
-
+  
   Course copyWith({String? name, int? iconCodePoint, int? folderColorValue, bool clearColor = false, DateTime? updatedAt}) {
     return Course(
       id: id,

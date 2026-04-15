@@ -5,6 +5,7 @@ import 'package:study_flow/ui/pages/calendar_page.dart';
 import 'package:study_flow/ui/pages/dashboard_page.dart';
 import 'package:study_flow/ui/pages/notes_page.dart';
 import 'package:study_flow/ui/pages/profile_page.dart';
+import 'package:study_flow/ui/pages/schedule_page.dart';
 import 'package:study_flow/ui/pages/study_page.dart';
 import 'package:study_flow/ui/pages/tasks_page.dart';
 
@@ -110,6 +111,15 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: AppRoutes.schedule,
+                name: 'schedule',
+                pageBuilder: (context, state) => FadeSlidePage(name: 'schedule', child: const SchedulePage()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: AppRoutes.study,
                 name: 'study',
                 pageBuilder: (context, state) => FadeSlidePage(name: 'study', child: const StudyPage()),
@@ -161,6 +171,7 @@ class AppRoutes {
   static const String dashboard = '/dashboard';
   static const String tasks = '/tasks';
   static const String notes = '/notes';
+  static const String schedule = '/schedule';
   static const String study = '/study';
   static const String profile = '/profile';
   static const String calendar = '/calendar';

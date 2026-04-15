@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:study_flow/features/notes/course.dart';
 import 'package:study_flow/features/notes/note.dart';
 import 'package:study_flow/features/notes/notes_service.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:study_flow/theme.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -216,11 +217,11 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
       setState(() => _hasChanges = false);
       if (pop && mounted) Navigator.of(context).pop();
       if (!pop && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Row(children: [
-            Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            Icon(PhosphorIcons.checkCircle(), color: Colors.white, size: 18),
             SizedBox(width: 10),
-            Text('Saved!'),
+            Text('Saved!', style: TextStyle(color: Colors.white)),
           ]),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Color(0xFF4CAF50),

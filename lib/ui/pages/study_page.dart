@@ -104,32 +104,51 @@ class _CoursePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(AppRadius.xl)),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: selectedCourseId,
+    final selected = courses.firstWhere((c) => c.id == selectedCourseId);
+
+    return PopupMenuButton<String>(
+      initialValue: selectedCourseId,
+      onSelected: onChanged,
+      offset: const Offset(0, 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(AppRadius.xl),
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-          items: [
-            for (final c in courses)
-              DropdownMenuItem(
-                value: c.id,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(IconData(c.iconCodePoint, fontFamily: 'MaterialIcons'), size: 18, color: scheme.onSurfaceVariant),
-                    const SizedBox(width: 8),
-                    Text(c.name),
-                  ],
-                ),
+          border: Border.all(color: scheme.outline.withValues(alpha: 0.15)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(PhosphorIcons.folder(), size: 16, color: scheme.primary),
+            const SizedBox(width: 6),
+            Text(
+              selected.name,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: scheme.onSurface,
               ),
+            ),
+            const SizedBox(width: 4),
+            Icon(PhosphorIcons.caretDown(), size: 14, color: scheme.onSurfaceVariant),
           ],
         ),
       ),
+      itemBuilder: (context) => [
+        for (final c in courses)
+          PopupMenuItem(
+            value: c.id,
+            child: Row(
+              children: [
+                Icon(PhosphorIcons.folder(), size: 16, color: scheme.primary),
+                const SizedBox(width: 10),
+                Text(c.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
@@ -176,7 +195,7 @@ class _QuizTab extends StatelessWidget {
                   children: [
                     FilledButton.icon(
                       onPressed: c == null ? null : () => _startMcq(context, c.id),
-                      icon:  Icon(PhosphorIcons.sparkle()),
+                      icon: Icon(PhosphorIcons.plus()),
                       label: const Text('Generate from flashcards'),
                     ),
                     OutlinedButton.icon(
@@ -191,19 +210,6 @@ class _QuizTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Tip', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                const SizedBox(height: 8),
-                Text('Your quiz accuracy feeds the Performance Dashboard automatically.', style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.35)),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }

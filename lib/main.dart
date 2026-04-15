@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:study_flow/nav.dart';
 import 'package:study_flow/features/notes/notes_service.dart';
+import 'package:study_flow/features/schedule/schedule_service.dart';
 import 'package:study_flow/features/study/study_service.dart';
 import 'package:study_flow/features/tasks/task_service.dart';
 import 'package:study_flow/features/student_id/student_id_service.dart';
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AppThemeController()..load()),
         ChangeNotifierProvider(create: (_) => TaskService()..load()),
         ChangeNotifierProvider(create: (_) => NotesService()..load()),
+        ChangeNotifierProvider(create: (_) => ScheduleService()),
         ChangeNotifierProvider(create: (_) => StudyService()..load()),
         ChangeNotifierProvider(create: (_) => StudentIdService()..load()),
       ],

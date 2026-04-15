@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:study_flow/services/haptic_service.dart';
+import 'package:study_flow/ui/components/animated_empty_state.dart';
 import 'package:study_flow/features/notes/course.dart';
 import 'package:study_flow/features/notes/note.dart';
 import 'package:study_flow/features/notes/notes_service.dart';
@@ -45,12 +47,17 @@ class _NotesPageState extends State<NotesPage> {
                   .where((c) => c.name.toLowerCase().contains(_query.toLowerCase()))
                   .toList();
 
+          final bottomPadding = MediaQuery.paddingOf(context).bottom;
+
           return Scaffold(
             backgroundColor: Colors.transparent,
             // ── FAB ──────────────────────────────────────────────────────────
-            floatingActionButton: FloatingActionButton(
-              onPressed: () => _showAddCourseSheet(context),
-              child: Icon(PhosphorIcons.plus()),
+            floatingActionButton: Padding(
+              padding: EdgeInsets.only(bottom: bottomPadding + 16),
+              child: FloatingActionButton(
+                onPressed: () => _showAddCourseSheet(context),
+                child: Icon(PhosphorIcons.plus()),
+              ),
             ),
             body: CustomScrollView(
               slivers: [
@@ -58,7 +65,21 @@ class _NotesPageState extends State<NotesPage> {
                 SliverAppBar(
                   pinned: true,
                   backgroundColor: Colors.transparent,
+                  leading: IconButton(
+                    icon: Icon(PhosphorIcons.list(), color: theme.colorScheme.onSurface),
+                    onPressed: () {
+                      final scaffold = Scaffold.maybeOf(context);
+                      if (scaffold != null && scaffold.hasDrawer) {
+                        scaffold.openDrawer();
+                      } else {
+                        // Fallback: try to find parent scaffold (AppShell)
+                        final parentScaffold = context.findAncestorStateOfType<ScaffoldState>();
+                        parentScaffold?.openDrawer();
+                      }
+                    },
+                  ),
                   title: const Text('Notes'),
+                  elevation: 0,
                 ),
 
                 // ── Search bar ───────────────────────────────────────────────
@@ -206,7 +227,7 @@ class _NotesPageState extends State<NotesPage> {
 // FOLDER CARD
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _FolderCard extends StatelessWidget {
+class _FolderCard extends StatefulWidget {
   const _FolderCard({
     required this.course,
     required this.noteCount,
@@ -222,13 +243,52 @@ class _FolderCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   @override
+  State<_FolderCard> createState() => _FolderCardState();
+}
+
+class _FolderCardState extends State<_FolderCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(_) {
+    _controller.forward();
+    HapticService.light();
+  }
+
+  void _onTapUp(_) {
+    _controller.reverse();
+  }
+
+  void _onTapCancel() {
+    _controller.reverse();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final folderColor = course.folderColor ?? scheme.surfaceContainerHighest;
+    final folderColor = widget.course.folderColor ?? scheme.surfaceContainerHighest;
     final isDark = theme.brightness == Brightness.dark;
 
-    // Compute legible label color
     final lum = folderColor.computeLuminance();
     final labelBg = isDark
         ? Colors.black.withValues(alpha: 0.55)
@@ -236,91 +296,93 @@ class _FolderCard extends StatelessWidget {
     final labelFg = isDark ? Colors.white : Colors.black;
 
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: folderColor,
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.10)
-                : Colors.black.withValues(alpha: 0.09),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: folderColor.withValues(alpha: isDark ? 0.25 : 0.35),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+      onTap: widget.onTap,
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnimation.value,
+          child: child,
         ),
-        child: Stack(
-          children: [
-            // Folder tab nub at top
-            Positioned(
-              top: 0,
-              left: 14,
-              child: Container(
-                // Top folder icon
+        child: Container(
+          decoration: BoxDecoration(
+            color: folderColor,
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.10)
+                  : Colors.black.withValues(alpha: 0.09),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: folderColor.withValues(alpha: isDark ? 0.25 : 0.35),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                top: 0,
+                left: 14,
                 child: Icon(
                   PhosphorIcons.folder(),
                   size: 48,
                   color: Colors.black.withValues(alpha: 0.15),
                 ),
               ),
-            ),
-
-            // ⋮ menu
-            Positioned(
-              top: 8,
-              right: 8,
-              child: _FolderMenu(onEdit: onEdit, onDelete: onDelete),
-            ),
-
-            // Bottom label pill
-            Positioned(
-              bottom: 12,
-              left: 12,
-              right: 12,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: labelBg,
-                  borderRadius: BorderRadius.circular(AppRadius.xl),
-                  border: Border.all(
-                      color: Colors.black.withValues(alpha: 0.12), width: 1),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      course.name.toUpperCase(),
-                      style: TextStyle(
-                        color: labelFg,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                        letterSpacing: 0.5,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (noteCount > 0) ...[
-                      const SizedBox(height: 2),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: _FolderMenu(onEdit: widget.onEdit, onDelete: widget.onDelete),
+              ),
+              Positioned(
+                bottom: 12,
+                left: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: labelBg,
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
+                    border: Border.all(
+                        color: Colors.black.withValues(alpha: 0.12), width: 1),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        '$noteCount note${noteCount == 1 ? '' : 's'}',
+                        widget.course.name.toUpperCase(),
                         style: TextStyle(
-                          color: labelFg.withValues(alpha: 0.55),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w600,
+                          color: labelFg,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      if (widget.noteCount > 0) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '${widget.noteCount} note${widget.noteCount == 1 ? '' : 's'}',
+                          style: TextStyle(
+                            color: labelFg.withValues(alpha: 0.55),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -627,33 +689,11 @@ class _EmptyFolders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(PhosphorIcons.folderOpen(),
-                size: 72, color: theme.colorScheme.outlineVariant),
-            const SizedBox(height: 16),
-            Text('No folders yet',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 8),
-            Text('Tap + to create your first course folder.',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: onAdd,
-              icon: Icon(PhosphorIcons.plus()),
-              label: const Text('Create folder'),
-            ),
-          ],
-        ),
-      ),
+    return AnimatedEmptyState(
+      icon: PhosphorIcons.folderOpen(),
+      title: 'No folders yet',
+      subtitle: 'Tap + to create your first course folder.',
+
     );
   }
 }
@@ -687,25 +727,32 @@ class _CourseFolderPageState extends State<CourseFolderPage> {
     final folderColor =
         widget.course.folderColor ?? scheme.primaryContainer;
 
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton(
-            heroTag: 'import',
-            onPressed: () => _importFile(context),
-            tooltip: 'Import file',
-            child: Icon(PhosphorIcons.paperclip()),
-          ),
-          const SizedBox(height: 10),
-          FloatingActionButton.extended(
-            heroTag: 'newNote',
-            onPressed: () => _openEditor(context),
-            icon: Icon(PhosphorIcons.notePencil()),
-            label: const Text('New Note'),
-          ),
-        ],
+      resizeToAvoidBottomInset: true,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: bottomPadding + 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              heroTag: 'import',
+              onPressed: () => _importFile(context),
+              tooltip: 'Import file',
+              child: Icon(PhosphorIcons.paperclip()),
+            ),
+            const SizedBox(height: 10),
+            FloatingActionButton.extended(
+              heroTag: 'newNote',
+              onPressed: () => _openEditor(context),
+              icon: Icon(PhosphorIcons.notePencil()),
+              label: const Text('New Note'),
+            ),
+          ],
+        ),
       ),
       body: Consumer<NotesService>(
         builder: (context, notes, _) {
@@ -751,14 +798,6 @@ class _CourseFolderPageState extends State<CourseFolderPage> {
                     ],
                   ),
                 ),
-                actions: [
-                  IconButton(
-                    tooltip: 'New note',
-                    onPressed: () => _openEditor(context),
-                    icon: Icon(PhosphorIcons.plus(),
-                        color: _contrastColor(folderColor)),
-                  ),
-                ],
               ),
 
               // ── Search ────────────────────────────────────────────────────
@@ -857,7 +896,7 @@ class _CourseFolderPageState extends State<CourseFolderPage> {
             content: Row(children: [
               Icon(PhosphorIcons.checkCircle(), color: Colors.white, size: 18),
               const SizedBox(width: 10),
-              Flexible(child: Text('"$fileName" imported')),
+              Flexible(child: Text('"$fileName" imported', style: const TextStyle(color: Colors.white))),
             ]),
             behavior: SnackBarBehavior.floating,
             backgroundColor: const Color(0xFF4CAF50),
@@ -1009,11 +1048,7 @@ class _EmptyNotes extends StatelessWidget {
                   style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant)),
               const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: onAdd,
-                icon: Icon(PhosphorIcons.notePencil()),
-                label: const Text('Start writing'),
-              ),
+            
             ],
           ],
         ),
